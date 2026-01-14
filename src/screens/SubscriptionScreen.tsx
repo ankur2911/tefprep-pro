@@ -94,7 +94,11 @@ export default function SubscriptionScreen({ navigation }: Props) {
                   [
                     {
                       text: 'Start Learning',
-                      onPress: () => navigation.goBack(),
+                      onPress: () => {
+                        if (navigation.canGoBack()) {
+                          navigation.goBack();
+                        }
+                      },
                     },
                   ]
                 );
@@ -106,7 +110,11 @@ export default function SubscriptionScreen({ navigation }: Props) {
                   [
                     {
                       text: 'Start Learning',
-                      onPress: () => navigation.goBack(),
+                      onPress: () => {
+                        if (navigation.canGoBack()) {
+                          navigation.goBack();
+                        }
+                      },
                     },
                   ]
                 );
@@ -115,7 +123,9 @@ export default function SubscriptionScreen({ navigation }: Props) {
               await refreshSubscription();
               // Navigate back after a short delay
               setTimeout(() => {
-                navigation.goBack();
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                }
               }, 1000);
             } catch (error: any) {
               Alert.alert('Error', error.message || 'Failed to subscribe');
@@ -159,7 +169,9 @@ export default function SubscriptionScreen({ navigation }: Props) {
                         'Your subscription has been cancelled. You can still access premium content until the end of your billing period.'
                       );
                       setTimeout(() => {
-                        navigation.goBack();
+                        if (navigation.canGoBack()) {
+                          navigation.goBack();
+                        }
                       }, 1000);
                     } catch (error: any) {
                       Alert.alert('Error', error.message || 'Failed to cancel subscription');
