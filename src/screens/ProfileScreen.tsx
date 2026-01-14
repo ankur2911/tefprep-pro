@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -6,13 +6,11 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { Colors } from '../utils/colors';
-import { populateFirebaseWithPapers } from '../utils/populateFirebase';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -21,41 +19,6 @@ type Props = {
 export default function ProfileScreen({ navigation }: Props) {
   const { user, logout } = useAuth();
   const { subscription, hasActiveSubscription } = useSubscription();
-  const [populatingFirebase, setPopulatingFirebase] = useState(false);
-
-  const handlePopulateFirebase = async () => {
-    Alert.alert(
-      'Populate Firebase',
-      'This will add all 16 sample papers to Firebase. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Yes, Add Papers',
-          onPress: async () => {
-            setPopulatingFirebase(true);
-            try {
-              const result = await populateFirebaseWithPapers();
-              Alert.alert(
-                'Success! 🎉',
-                `Added ${result.count} papers to Firebase.\n\nGo to the Papers tab to see them!`,
-                [
-                  {
-                    text: 'View Papers',
-                    onPress: () => navigation.navigate('PapersTab'),
-                  },
-                ]
-              );
-            } catch (error: any) {
-              console.error('Population error:', error);
-              Alert.alert('Error', error.message || 'Failed to populate Firebase');
-            } finally {
-              setPopulatingFirebase(false);
-            }
-          },
-        },
-      ]
-    );
-  };
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -139,21 +102,6 @@ export default function ProfileScreen({ navigation }: Props) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Support</Text>
-
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={handlePopulateFirebase}
-          disabled={populatingFirebase}
-        >
-          <Text style={styles.menuItemText}>
-            {populatingFirebase ? 'Adding Papers to Firebase...' : '🔧 Add Sample Papers to Firebase'}
-          </Text>
-          {populatingFirebase ? (
-            <ActivityIndicator size="small" color={Colors.primary} />
-          ) : (
-            <Text style={styles.menuItemArrow}>›</Text>
-          )}
-        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.menuItem}
