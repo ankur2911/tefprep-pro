@@ -173,33 +173,35 @@ export default function PapersScreen({ navigation }: Props) {
         </Text>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.categoriesScroll}
-        contentContainerStyle={styles.categoriesContainer}
-      >
-        {CATEGORIES.map((category) => (
-          <TouchableOpacity
-            key={category}
-            style={[
-              styles.categoryChip,
-              selectedCategory === category && styles.categoryChipSelected,
-            ]}
-            onPress={() => setSelectedCategory(category)}
-            activeOpacity={0.7}
-          >
-            <Text
+      <View style={styles.categoriesWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesScroll}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {CATEGORIES.map((category) => (
+            <TouchableOpacity
+              key={category}
               style={[
-                styles.categoryChipText,
-                selectedCategory === category && styles.categoryChipTextSelected,
+                styles.categoryChip,
+                selectedCategory === category && styles.categoryChipSelected,
               ]}
+              onPress={() => setSelectedCategory(category)}
+              activeOpacity={0.7}
             >
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              <Text
+                style={[
+                  styles.categoryChipText,
+                  selectedCategory === category && styles.categoryChipTextSelected,
+                ]}
+              >
+                {category}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       <FlatList
         data={filteredPapers}
@@ -256,23 +258,31 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
   },
-  categoriesScroll: {
+  categoriesWrapper: {
+    height: 72,
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
+  categoriesScroll: {
+    flex: 1,
+  },
   categoriesContainer: {
     paddingHorizontal: 16,
     paddingVertical: 14,
+    flexGrow: 0,
   },
   categoryChip: {
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 24,
+    paddingVertical: 10,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: Colors.border,
     marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   categoryChipSelected: {
     backgroundColor: Colors.primary,
@@ -282,6 +292,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     color: Colors.textSecondary,
+    lineHeight: 20,
   },
   categoryChipTextSelected: {
     color: Colors.textInverse,
