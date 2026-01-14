@@ -1,19 +1,24 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet } from 'react-native';
-import { useCart } from '../context/CartContext';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
+// Screens
 import HomeScreen from '../screens/HomeScreen';
-import ProductsScreen from '../screens/ProductsScreen';
-import ProductDetailScreen from '../screens/ProductDetailScreen';
-import CartScreen from '../screens/CartScreen';
-import CheckoutScreen from '../screens/CheckoutScreen';
+import PapersScreen from '../screens/PapersScreen';
+import PaperDetailScreen from '../screens/PaperDetailScreen';
+import TestScreen from '../screens/TestScreen';
+import TestResultsScreen from '../screens/TestResultsScreen';
+import ProgressScreen from '../screens/ProgressScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import LoginScreen from '../screens/LoginScreen';
+import SubscriptionScreen from '../screens/SubscriptionScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Home Stack
 function HomeStack() {
   return (
     <Stack.Navigator>
@@ -22,87 +27,92 @@ function HomeStack() {
         component={HomeScreen}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="ProductDetail"
-        component={ProductDetailScreen}
-        options={{ title: 'Product Details' }}
-      />
     </Stack.Navigator>
   );
 }
 
-function ProductsStack() {
+// Papers Stack
+function PapersStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="Products"
-        component={ProductsScreen}
-        options={{ title: 'All Products' }}
+        name="Papers"
+        component={PapersScreen}
+        options={{ title: 'Practice Papers' }}
       />
       <Stack.Screen
-        name="ProductDetail"
-        component={ProductDetailScreen}
-        options={{ title: 'Product Details' }}
+        name="PaperDetail"
+        component={PaperDetailScreen}
+        options={{ title: 'Paper Details' }}
+      />
+      <Stack.Screen
+        name="Test"
+        component={TestScreen}
+        options={{ title: 'Test', headerShown: false }}
+      />
+      <Stack.Screen
+        name="TestResults"
+        component={TestResultsScreen}
+        options={{ title: 'Test Results', headerLeft: () => null }}
       />
     </Stack.Navigator>
   );
 }
 
-function CartStack() {
+// Progress Stack
+function ProgressStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="Cart"
-        component={CartScreen}
-        options={{ title: 'Shopping Cart' }}
-      />
-      <Stack.Screen
-        name="Checkout"
-        component={CheckoutScreen}
-        options={{ title: 'Checkout' }}
+        name="Progress"
+        component={ProgressScreen}
+        options={{ title: 'My Progress' }}
       />
     </Stack.Navigator>
   );
 }
 
+// Profile Stack
+function ProfileStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ title: 'Profile' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// Tab Bar Icon Component
 function TabBarIcon({ label, focused }: { label: string; focused: boolean }) {
   const iconMap: { [key: string]: string } = {
     HomeTab: '🏠',
-    ProductsTab: '🛍️',
-    CartTab: '🛒',
+    PapersTab: '📝',
+    ProgressTab: '📊',
     ProfileTab: '👤',
+  };
+
+  const labelMap: { [key: string]: string } = {
+    HomeTab: 'Home',
+    PapersTab: 'Papers',
+    ProgressTab: 'Progress',
+    ProfileTab: 'Profile',
   };
 
   return (
     <View style={styles.tabIcon}>
       <Text style={styles.tabIconText}>{iconMap[label]}</Text>
       <Text style={[styles.tabLabel, focused && styles.tabLabelFocused]}>
-        {label.replace('Tab', '')}
+        {labelMap[label]}
       </Text>
     </View>
   );
 }
 
-function CartTabIcon({ focused }: { focused: boolean }) {
-  const { getItemCount } = useCart();
-  const itemCount = getItemCount();
-
-  return (
-    <View style={styles.tabIcon}>
-      <View>
-        <Text style={styles.tabIconText}>🛒</Text>
-        {itemCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{itemCount}</Text>
-          </View>
-        )}
-      </View>
-      <Text style={[styles.tabLabel, focused && styles.tabLabelFocused]}>Cart</Text>
-    </View>
-  );
-}
-
-export default function AppNavigator() {
+// Main Tab Navigator
+function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -119,32 +129,65 @@ export default function AppNavigator() {
         }}
       />
       <Tab.Screen
-        name="ProductsTab"
-        component={ProductsStack}
+        name="PapersTab"
+        component={PapersStack}
         options={{
-          tabBarIcon: ({ focused }) => <TabBarIcon label="ProductsTab" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabBarIcon label="PapersTab" focused={focused} />,
           tabBarLabel: () => null,
         }}
       />
       <Tab.Screen
-        name="CartTab"
-        component={CartStack}
+        name="ProgressTab"
+        component={ProgressStack}
         options={{
-          tabBarIcon: ({ focused }) => <CartTabIcon focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabBarIcon label="ProgressTab" focused={focused} />,
           tabBarLabel: () => null,
         }}
       />
       <Tab.Screen
         name="ProfileTab"
-        component={ProfileScreen}
+        component={ProfileStack}
         options={{
           tabBarIcon: ({ focused }) => <TabBarIcon label="ProfileTab" focused={focused} />,
           tabBarLabel: () => null,
-          headerShown: true,
-          title: 'Profile',
         }}
       />
     </Tab.Navigator>
+  );
+}
+
+// Root Navigator with Auth Check
+export default function AppNavigator() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#5B21B6" />
+        <Text style={styles.loadingText}>Loading TEFPrep Pro...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {user ? (
+        <>
+          <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen
+            name="Subscription"
+            component={SubscriptionScreen}
+            options={{
+              headerShown: true,
+              title: 'Subscription',
+              presentation: 'modal'
+            }}
+          />
+        </>
+      ) : (
+        <Stack.Screen name="Login" component={LoginScreen} />
+      )}
+    </Stack.Navigator>
   );
 }
 
@@ -153,6 +196,9 @@ const styles = StyleSheet.create({
     height: 60,
     paddingBottom: 8,
     paddingTop: 8,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
   },
   tabIcon: {
     alignItems: 'center',
@@ -163,27 +209,22 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 12,
-    color: '#888',
+    color: '#6B7280',
     marginTop: 4,
   },
   tabLabelFocused: {
-    color: '#4A90E2',
+    color: '#5B21B6',
     fontWeight: '600',
   },
-  badge: {
-    position: 'absolute',
-    right: -8,
-    top: -4,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff',
   },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6B7280',
   },
 });
