@@ -37,9 +37,16 @@ export default function ProfileScreen({ navigation }: Props) {
               const result = await populateFirebaseWithPapers();
               Alert.alert(
                 'Success! 🎉',
-                `Added ${result.count} papers to Firebase.\n\nYou can now load papers from Firebase instead of mock data.`
+                `Added ${result.count} papers to Firebase.\n\nGo to the Papers tab to see them!`,
+                [
+                  {
+                    text: 'View Papers',
+                    onPress: () => navigation.navigate('PapersTab'),
+                  },
+                ]
               );
             } catch (error: any) {
+              console.error('Population error:', error);
               Alert.alert('Error', error.message || 'Failed to populate Firebase');
             } finally {
               setPopulatingFirebase(false);

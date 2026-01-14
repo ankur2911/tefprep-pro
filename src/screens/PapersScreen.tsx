@@ -7,8 +7,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../utils/colors';
 import { Paper } from '../types';
 import { paperService } from '../services/paperService';
@@ -23,30 +25,49 @@ export default function PapersScreen({ navigation }: Props) {
   const { canAccessPaper } = useSubscription();
   const [papers, setPapers] = useState<Paper[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Tous');
 
   useEffect(() => {
     loadPapers();
   }, []);
 
+  // Refresh papers when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadPapers();
+    }, [])
+  );
+
   const loadPapers = async () => {
     try {
       setLoading(true);
+      console.log('Loading papers from Firebase...');
+
       // Try to load from Firebase first
       const fetchedPapers = await paperService.getAllPapers();
+      console.log(`Fetched ${fetchedPapers.length} papers from Firebase`);
+
       if (fetchedPapers.length > 0) {
         setPapers(fetchedPapers);
+        console.log('Using Firebase papers');
       } else {
         // Fallback to mock data if Firebase is empty
         console.log('No papers in Firebase, using mock data');
         setPapers(MOCK_PAPERS);
       }
     } catch (error) {
-      console.log('Error loading from Firebase, using mock data:', error);
+      console.error('Error loading from Firebase, using mock data:', error);
       setPapers(MOCK_PAPERS);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadPapers();
   };
 
   const filteredPapers =
@@ -186,12 +207,19 @@ export default function PapersScreen({ navigation }: Props) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>📚</Text>
             <Text style={styles.emptyText}>No papers found</Text>
             <Text style={styles.emptySubtext}>
-              Try selecting a different category
+              Try selecting a different category or pull down to refresh
             </Text>
           </View>
         }
@@ -235,13 +263,13 @@ const styles = StyleSheet.create({
   },
   categoriesContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 10,
+    paddingVertical: 14,
+    gap: 12,
   },
   categoryChip: {
-    paddingHorizontal: 18,
-    paddingVertical: 9,
-    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
     backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -251,7 +279,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   categoryChipText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
     color: Colors.textSecondary,
   },
