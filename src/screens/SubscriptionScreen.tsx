@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,13 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../utils/colors';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useAuth } from '../context/AuthContext';
+import { subscriptionService } from '../services/subscriptionService';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -17,6 +20,8 @@ type Props = {
 
 export default function SubscriptionScreen({ navigation }: Props) {
   const { subscription, hasActiveSubscription } = useSubscription();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const plans = [
     {
@@ -50,27 +55,109 @@ export default function SubscriptionScreen({ navigation }: Props) {
     },
   ];
 
-  const handleSubscribe = (planId: string) => {
+  const handleSubscribe = async (planId: 'monthly' | 'yearly') => {
+    if (!user) {
+      Alert.alert('Error', 'Please login to subscribe');
+      return;
+    }
+
+    const planName = planId === 'monthly' ? 'Monthly' : 'Yearly';
+    const planPrice = planId === 'monthly' ? '$9.99/month' : '$99/year';
+
     Alert.alert(
-      'Subscribe',
-      'Stripe payment integration coming soon!\n\nThis will open the payment flow to subscribe to the ' +
-        (planId === 'monthly' ? 'Monthly' : 'Yearly') +
-        ' plan.',
-      [{ text: 'OK' }]
+      'Confirm Subscription',
+      `Subscribe to ${planName} Plan for ${planPrice}?\n\n` +
+        (hasActiveSubscription
+          ? 'This will switch your current plan.'
+          : 'You will get instant access to all premium papers.') +
+        '\n\n💳 In production, this would process a real payment through Stripe.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Subscribe',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              if (hasActiveSubscription) {
+                await subscriptionService.switchPlan(user.uid, planId);
+                Alert.alert(
+                  'Success! 🎉',
+                  `Your plan has been switched to ${planName}.\n\nYou now have access to all premium papers!`,
+                  [
+                    {
+                      text: 'Start Learning',
+                      onPress: () => navigation.goBack(),
+                    },
+                  ]
+                );
+              } else {
+                await subscriptionService.createSubscription(user.uid, planId);
+                Alert.alert(
+                  'Welcome to Premium! 🎉',
+                  `You are now subscribed to the ${planName} plan.\n\nAll premium papers are now unlocked!`,
+                  [
+                    {
+                      text: 'Start Learning',
+                      onPress: () => navigation.goBack(),
+                    },
+                  ]
+                );
+              }
+              // Force reload by navigating away and back
+              setTimeout(() => {
+                navigation.goBack();
+              }, 1000);
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'Failed to subscribe');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
     );
   };
 
   const handleManageSubscription = () => {
+    if (!user) return;
+
     Alert.alert(
       'Manage Subscription',
-      'You can manage your subscription, update payment method, or cancel anytime.',
+      'What would you like to do?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Cancel Subscription',
           style: 'destructive',
-          onPress: () => {
-            Alert.alert('Success', 'Your subscription has been cancelled.');
+          onPress: async () => {
+            Alert.alert(
+              'Confirm Cancellation',
+              'Are you sure you want to cancel your subscription?\n\nYou will lose access to premium papers at the end of your billing period.',
+              [
+                { text: 'Keep Subscription', style: 'cancel' },
+                {
+                  text: 'Yes, Cancel',
+                  style: 'destructive',
+                  onPress: async () => {
+                    setLoading(true);
+                    try {
+                      await subscriptionService.cancelSubscription(user.uid);
+                      Alert.alert(
+                        'Subscription Cancelled',
+                        'Your subscription has been cancelled. You can still access premium content until the end of your billing period.'
+                      );
+                      setTimeout(() => {
+                        navigation.goBack();
+                      }, 1000);
+                    } catch (error: any) {
+                      Alert.alert('Error', error.message || 'Failed to cancel subscription');
+                    } finally {
+                      setLoading(false);
+                    }
+                  },
+                },
+              ]
+            );
           },
         },
       ]
@@ -78,13 +165,14 @@ export default function SubscriptionScreen({ navigation }: Props) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Choose Your Plan</Text>
-        <Text style={styles.subtitle}>
-          Unlock all premium papers and master your French certification
-        </Text>
-      </View>
+    <>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Choose Your Plan</Text>
+          <Text style={styles.subtitle}>
+            Unlock all premium papers and master your French certification
+          </Text>
+        </View>
 
       {hasActiveSubscription && subscription && (
         <View style={styles.currentPlanCard}>
@@ -194,12 +282,22 @@ export default function SubscriptionScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Cancel anytime. No questions asked. Full refund within 7 days.
-        </Text>
-      </View>
-    </ScrollView>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Cancel anytime. No questions asked. Full refund within 7 days.
+          </Text>
+        </View>
+      </ScrollView>
+
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loadingText}>Processing...</Text>
+          </View>
+        </View>
+      )}
+    </>
   );
 }
 
@@ -418,5 +516,27 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingCard: {
+    backgroundColor: Colors.surface,
+    padding: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textPrimary,
   },
 });
