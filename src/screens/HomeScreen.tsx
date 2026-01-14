@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   ScrollView,
-  Image,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MOCK_PAPERS } from '../utils/mockData';
@@ -25,6 +24,31 @@ export default function HomeScreen({ navigation }: Props) {
   const totalPapers = MOCK_PAPERS.length;
   const totalQuestions = MOCK_PAPERS.reduce((sum, paper) => sum + paper.questionsCount, 0);
 
+  const getCategoryIcon = (category: string) => {
+    const icons: { [key: string]: string } = {
+      'Compréhension Orale': '🎧',
+      'Expression Écrite': '✍️',
+      'Compréhension Écrite': '📖',
+      'Expression Orale': '🗣️',
+      'Vocabulaire et Grammaire': '📚',
+      'Test Complet': '🎯',
+    };
+    return icons[category] || '📝';
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Beginner':
+        return Colors.success;
+      case 'Intermediate':
+        return Colors.warning;
+      case 'Advanced':
+        return Colors.error;
+      default:
+        return Colors.textSecondary;
+    }
+  };
+
   const renderPaper = ({ item }: { item: Paper }) => (
     <TouchableOpacity
       style={styles.paperCard}
@@ -32,20 +56,41 @@ export default function HomeScreen({ navigation }: Props) {
         screen: 'PaperDetail',
         params: { paper: item },
       })}
+      activeOpacity={0.7}
     >
-      <Image source={{ uri: item.thumbnail }} style={styles.paperImage} />
+      <View style={[styles.paperIcon, { backgroundColor: Colors.primary + '15' }]}>
+        <Text style={styles.paperIconText}>{getCategoryIcon(item.category)}</Text>
+      </View>
       <View style={styles.paperInfo}>
-        <Text style={styles.paperTitle}>{item.title}</Text>
-        <Text style={styles.paperCategory}>{item.category}</Text>
-        <View style={styles.paperMeta}>
-          <Text style={styles.paperDuration}>{item.duration} min</Text>
-          <Text style={styles.paperQuestions}>{item.questionsCount} questions</Text>
+        <View style={styles.paperHeader}>
+          <Text style={styles.paperTitle} numberOfLines={2}>{item.title}</Text>
+          {item.isPremium && (
+            <View style={styles.premiumBadge}>
+              <Text style={styles.premiumText}>Premium</Text>
+            </View>
+          )}
         </View>
-        {item.isPremium && (
-          <View style={styles.premiumBadge}>
-            <Text style={styles.premiumText}>Premium</Text>
+        <Text style={styles.paperCategory}>{item.category}</Text>
+        <View style={styles.paperFooter}>
+          <View style={styles.paperMeta}>
+            <Text style={styles.metaIcon}>⏱️</Text>
+            <Text style={styles.paperDuration}>{item.duration} min</Text>
+            <Text style={styles.metaSeparator}>•</Text>
+            <Text style={styles.metaIcon}>📝</Text>
+            <Text style={styles.paperQuestions}>{item.questionsCount} questions</Text>
           </View>
-        )}
+          <View style={[
+            styles.difficultyBadge,
+            { backgroundColor: getDifficultyColor(item.difficulty) + '20' }
+          ]}>
+            <Text style={[
+              styles.difficultyText,
+              { color: getDifficultyColor(item.difficulty) }
+            ]}>
+              {item.difficulty}
+            </Text>
+          </View>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -149,34 +194,69 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   paperCard: {
+    flexDirection: 'row',
     backgroundColor: Colors.surface,
     borderRadius: 12,
-    marginBottom: 16,
-    overflow: 'hidden',
+    marginBottom: 12,
+    padding: 12,
     borderWidth: 1,
     borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  paperImage: {
-    width: '100%',
-    height: 150,
+  paperIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  paperIconText: {
+    fontSize: 28,
   },
   paperInfo: {
-    padding: 16,
+    flex: 1,
+    justifyContent: 'space-between',
   },
-  paperTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textPrimary,
+  paperHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 4,
   },
+  paperTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    flex: 1,
+    lineHeight: 20,
+  },
   paperCategory: {
-    fontSize: 14,
+    fontSize: 12,
     color: Colors.textSecondary,
     marginBottom: 8,
   },
+  paperFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   paperMeta: {
     flexDirection: 'row',
-    gap: 12,
+    alignItems: 'center',
+  },
+  metaIcon: {
+    fontSize: 12,
+    marginRight: 4,
+  },
+  metaSeparator: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginHorizontal: 6,
   },
   paperDuration: {
     fontSize: 12,
@@ -186,19 +266,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
   },
+  difficultyBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  difficultyText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
   premiumBadge: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    backgroundColor: Colors.accent,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    marginLeft: 8,
   },
   premiumText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
+    color: '#92400E',
+    fontSize: 10,
+    fontWeight: '600',
   },
   exploreButton: {
     backgroundColor: Colors.primary,
