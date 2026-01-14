@@ -17,11 +17,9 @@ export const populateFirebaseWithPapers = async () => {
     const papersRef = collection(db, 'papers');
 
     for (const paper of MOCK_PAPERS) {
-      const { id, ...paperData } = paper;
-
-      // Add each paper to Firebase with its ID
-      await setDoc(doc(papersRef, id), paperData);
-      console.log(`Added paper: ${paper.title} (ID: ${id})`);
+      // Include the id field in the document data
+      await setDoc(doc(papersRef, paper.id), paper);
+      console.log(`Added paper: ${paper.title} (ID: ${paper.id})`);
     }
 
     console.log('✅ Successfully added all papers to Firebase!');
