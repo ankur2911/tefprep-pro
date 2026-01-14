@@ -36,6 +36,7 @@ export const MOCK_QUESTIONS: { [paperId: string]: Question[] } = {
 };
 
 export const MOCK_PAPERS: Paper[] = [
+  // Compréhension Orale (3 papers)
   {
     id: '1',
     title: 'TEF Compréhension Orale - Niveau A1',
@@ -48,6 +49,30 @@ export const MOCK_PAPERS: Paper[] = [
     isPremium: false,
   },
   {
+    id: '7',
+    title: 'TEF Compréhension Orale - Niveau A2',
+    description: 'Développez vos compétences d\'écoute avec des dialogues et conversations du quotidien.',
+    category: 'Compréhension Orale',
+    difficulty: 'Beginner',
+    duration: 35,
+    questionsCount: 28,
+    thumbnail: 'https://via.placeholder.com/400x250/6D28D9/ffffff?text=Oral+A2',
+    isPremium: false,
+  },
+  {
+    id: '8',
+    title: 'TEF Compréhension Orale - Niveau B1',
+    description: 'Comprenez des conversations plus complexes sur des sujets familiers et professionnels.',
+    category: 'Compréhension Orale',
+    difficulty: 'Intermediate',
+    duration: 40,
+    questionsCount: 32,
+    thumbnail: 'https://via.placeholder.com/400x250/7C3AED/ffffff?text=Oral+B1',
+    isPremium: true,
+  },
+
+  // Expression Écrite (3 papers)
+  {
     id: '2',
     title: 'TEF Expression Écrite - Niveau B1',
     description: 'Pratiquez votre expression écrite avec des exercices intermédiaires. Incluant des questions sur la grammaire et la composition.',
@@ -58,6 +83,30 @@ export const MOCK_PAPERS: Paper[] = [
     thumbnail: 'https://via.placeholder.com/400x250/7C3AED/ffffff?text=Ecrit+B1',
     isPremium: true,
   },
+  {
+    id: '9',
+    title: 'TEF Expression Écrite - Niveau A2',
+    description: 'Exercices d\'écriture pour débutants: emails simples, messages courts et descriptions basiques.',
+    category: 'Expression Écrite',
+    difficulty: 'Beginner',
+    duration: 30,
+    questionsCount: 20,
+    thumbnail: 'https://via.placeholder.com/400x250/8B5CF6/ffffff?text=Ecrit+A2',
+    isPremium: false,
+  },
+  {
+    id: '10',
+    title: 'TEF Expression Écrite - Niveau B2',
+    description: 'Rédaction de textes argumentatifs et descriptions détaillées pour niveau avancé.',
+    category: 'Expression Écrite',
+    difficulty: 'Advanced',
+    duration: 50,
+    questionsCount: 35,
+    thumbnail: 'https://via.placeholder.com/400x250/9333EA/ffffff?text=Ecrit+B2',
+    isPremium: true,
+  },
+
+  // Compréhension Écrite (3 papers)
   {
     id: '3',
     title: 'TEF Compréhension Écrite - Niveau B2',
@@ -70,16 +119,29 @@ export const MOCK_PAPERS: Paper[] = [
     isPremium: true,
   },
   {
-    id: '4',
-    title: 'TEF Vocabulaire et Grammaire - A2',
-    description: 'Renforcez vos connaissances en vocabulaire et grammaire française. Parfait pour le niveau élémentaire.',
-    category: 'Vocabulaire et Grammaire',
+    id: '11',
+    title: 'TEF Compréhension Écrite - Niveau A1',
+    description: 'Lecture de textes simples: annonces, messages courts et instructions basiques.',
+    category: 'Compréhension Écrite',
     difficulty: 'Beginner',
-    duration: 40,
-    questionsCount: 35,
-    thumbnail: 'https://via.placeholder.com/400x250/10B981/ffffff?text=Vocab+A2',
+    duration: 25,
+    questionsCount: 20,
+    thumbnail: 'https://via.placeholder.com/400x250/2563EB/ffffff?text=Lecture+A1',
     isPremium: false,
   },
+  {
+    id: '12',
+    title: 'TEF Compréhension Écrite - Niveau B1',
+    description: 'Compréhension de textes informatifs, articles de presse et correspondances formelles.',
+    category: 'Compréhension Écrite',
+    difficulty: 'Intermediate',
+    duration: 45,
+    questionsCount: 30,
+    thumbnail: 'https://via.placeholder.com/400x250/1D4ED8/ffffff?text=Lecture+B1',
+    isPremium: true,
+  },
+
+  // Expression Orale (2 papers)
   {
     id: '5',
     title: 'TEF Expression Orale - Niveau B2',
@@ -92,6 +154,54 @@ export const MOCK_PAPERS: Paper[] = [
     isPremium: true,
   },
   {
+    id: '13',
+    title: 'TEF Expression Orale - Niveau A2/B1',
+    description: 'Entraînez-vous à parler sur des sujets familiers et à donner votre opinion.',
+    category: 'Expression Orale',
+    difficulty: 'Intermediate',
+    duration: 25,
+    questionsCount: 15,
+    thumbnail: 'https://via.placeholder.com/400x250/D97706/ffffff?text=Oral+A2',
+    isPremium: true,
+  },
+
+  // Vocabulaire et Grammaire (3 papers)
+  {
+    id: '4',
+    title: 'TEF Vocabulaire et Grammaire - A2',
+    description: 'Renforcez vos connaissances en vocabulaire et grammaire française. Parfait pour le niveau élémentaire.',
+    category: 'Vocabulaire et Grammaire',
+    difficulty: 'Beginner',
+    duration: 40,
+    questionsCount: 35,
+    thumbnail: 'https://via.placeholder.com/400x250/10B981/ffffff?text=Vocab+A2',
+    isPremium: false,
+  },
+  {
+    id: '14',
+    title: 'TEF Vocabulaire et Grammaire - A1',
+    description: 'Les bases essentielles: conjugaisons simples, vocabulaire courant et structure de phrases.',
+    category: 'Vocabulaire et Grammaire',
+    difficulty: 'Beginner',
+    duration: 30,
+    questionsCount: 25,
+    thumbnail: 'https://via.placeholder.com/400x250/059669/ffffff?text=Vocab+A1',
+    isPremium: false,
+  },
+  {
+    id: '15',
+    title: 'TEF Vocabulaire et Grammaire - B1',
+    description: 'Grammaire intermédiaire: temps verbaux complexes, pronoms et expressions idiomatiques.',
+    category: 'Vocabulaire et Grammaire',
+    difficulty: 'Intermediate',
+    duration: 50,
+    questionsCount: 40,
+    thumbnail: 'https://via.placeholder.com/400x250/047857/ffffff?text=Vocab+B1',
+    isPremium: true,
+  },
+
+  // Test Complet (2 papers)
+  {
     id: '6',
     title: 'TEF Test Complet - Niveau B1',
     description: 'Simulation complète du TEF couvrant toutes les sections. Idéal pour préparer l\'examen officiel.',
@@ -100,6 +210,17 @@ export const MOCK_PAPERS: Paper[] = [
     duration: 120,
     questionsCount: 100,
     thumbnail: 'https://via.placeholder.com/400x250/EF4444/ffffff?text=Full+Test',
+    isPremium: true,
+  },
+  {
+    id: '16',
+    title: 'TEF Test Complet - Niveau A2',
+    description: 'Examen blanc complet pour évaluer votre niveau A2 dans toutes les compétences.',
+    category: 'Test Complet',
+    difficulty: 'Beginner',
+    duration: 90,
+    questionsCount: 75,
+    thumbnail: 'https://via.placeholder.com/400x250/DC2626/ffffff?text=Test+A2',
     isPremium: true,
   },
 ];
