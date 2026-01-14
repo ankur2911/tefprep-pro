@@ -264,7 +264,6 @@ const styles = StyleSheet.create({
   categoriesContainer: {
     paddingHorizontal: 16,
     paddingVertical: 14,
-    gap: 12,
   },
   categoryChip: {
     paddingHorizontal: 20,
@@ -273,6 +272,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: Colors.border,
+    marginRight: 12,
   },
   categoryChipSelected: {
     backgroundColor: Colors.primary,
@@ -311,7 +311,6 @@ const styles = StyleSheet.create({
   },
   paperBadges: {
     flexDirection: 'row',
-    gap: 6,
     flexWrap: 'wrap',
     flex: 1,
   },
@@ -320,6 +319,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 4,
     borderWidth: 1,
+    marginRight: 6,
   },
   difficultyText: {
     fontSize: 11,
@@ -373,15 +373,15 @@ const styles = StyleSheet.create({
   },
   paperMeta: {
     flexDirection: 'row',
-    gap: 12,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    marginRight: 12,
   },
   metaIcon: {
     fontSize: 14,
+    marginRight: 4,
   },
   metaText: {
     fontSize: 13,
