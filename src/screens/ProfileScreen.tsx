@@ -151,7 +151,7 @@ export default function ProfileScreen({ navigation }: Props) {
               'Version 1.0.0\n\n' +
                 'TEFPrep Pro helps you prepare for the Test d\'Évaluation de Français (TEF) certification.\n\n' +
                 'Practice with real exam-style questions and track your progress.\n\n' +
-                '© 2024 TEFPrep Pro'
+                '© 2026 TEFPrep Pro'
             )
           }
         >
