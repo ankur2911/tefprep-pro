@@ -32,18 +32,17 @@ export default function PapersScreen({ navigation }: Props) {
   const loadPapers = async () => {
     try {
       setLoading(true);
-      // Use mock data for now - later you can switch to Firebase
-      setPapers(MOCK_PAPERS);
-
-      // Uncomment below to use Firebase data instead:
-      // const fetchedPapers = await paperService.getAllPapers();
-      // if (fetchedPapers.length > 0) {
-      //   setPapers(fetchedPapers);
-      // } else {
-      //   setPapers(MOCK_PAPERS);
-      // }
+      // Try to load from Firebase first
+      const fetchedPapers = await paperService.getAllPapers();
+      if (fetchedPapers.length > 0) {
+        setPapers(fetchedPapers);
+      } else {
+        // Fallback to mock data if Firebase is empty
+        console.log('No papers in Firebase, using mock data');
+        setPapers(MOCK_PAPERS);
+      }
     } catch (error) {
-      console.log('Using mock data:', error);
+      console.log('Error loading from Firebase, using mock data:', error);
       setPapers(MOCK_PAPERS);
     } finally {
       setLoading(false);
@@ -237,12 +236,12 @@ const styles = StyleSheet.create({
   categoriesContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 8,
+    gap: 10,
   },
   categoryChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderRadius: 20,
     backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -252,7 +251,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   categoryChipText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
   },
