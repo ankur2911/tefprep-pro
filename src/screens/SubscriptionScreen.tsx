@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../utils/colors';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useAuth } from '../context/AuthContext';
@@ -19,9 +20,16 @@ type Props = {
 };
 
 export default function SubscriptionScreen({ navigation }: Props) {
-  const { subscription, hasActiveSubscription } = useSubscription();
+  const { subscription, hasActiveSubscription, refreshSubscription } = useSubscription();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  // Refresh subscription data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshSubscription();
+    }, [])
+  );
 
   const plans = [
     {
@@ -103,7 +111,9 @@ export default function SubscriptionScreen({ navigation }: Props) {
                   ]
                 );
               }
-              // Force reload by navigating away and back
+              // Refresh subscription data
+              await refreshSubscription();
+              // Navigate back after a short delay
               setTimeout(() => {
                 navigation.goBack();
               }, 1000);
@@ -142,6 +152,8 @@ export default function SubscriptionScreen({ navigation }: Props) {
                     setLoading(true);
                     try {
                       await subscriptionService.cancelSubscription(user.uid);
+                      // Refresh subscription data to show updated status
+                      await refreshSubscription();
                       Alert.alert(
                         'Subscription Cancelled',
                         'Your subscription has been cancelled. You can still access premium content until the end of your billing period.'
@@ -174,113 +186,113 @@ export default function SubscriptionScreen({ navigation }: Props) {
           </Text>
         </View>
 
-      {hasActiveSubscription && subscription && (
-        <View style={styles.currentPlanCard}>
-          <Text style={styles.currentPlanBadge}>✓ Active</Text>
-          <Text style={styles.currentPlanTitle}>Current Plan</Text>
-          <Text style={styles.currentPlanName}>
-            {subscription.plan === 'monthly' ? 'Monthly' : 'Yearly'} Subscription
-          </Text>
-          <Text style={styles.currentPlanExpiry}>
-            {subscription.autoRenew ? 'Renews' : 'Expires'} on{' '}
-            {subscription.endDate.toLocaleDateString()}
-          </Text>
-          <TouchableOpacity
-            style={styles.manageButton}
-            onPress={handleManageSubscription}
-          >
-            <Text style={styles.manageButtonText}>Manage Subscription</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      <View style={styles.plansContainer}>
-        {plans.map((plan) => (
-          <View
-            key={plan.id}
-            style={[styles.planCard, plan.popular && styles.popularPlan]}
-          >
-            {plan.popular && (
-              <View style={styles.popularBadge}>
-                <Text style={styles.popularBadgeText}>⭐ Most Popular</Text>
-              </View>
-            )}
-
-            <Text style={styles.planName}>{plan.name}</Text>
-
-            <View style={styles.priceContainer}>
-              <Text style={styles.price}>{plan.price}</Text>
-              <Text style={styles.period}>{plan.period}</Text>
-            </View>
-
-            {plan.savings && (
-              <View style={styles.savingsBadge}>
-                <Text style={styles.savingsText}>{plan.savings}</Text>
-              </View>
-            )}
-
-            <View style={styles.featuresContainer}>
-              {plan.features.map((feature, index) => (
-                <View key={index} style={styles.featureRow}>
-                  <Text style={styles.checkmark}>✓</Text>
-                  <Text style={styles.featureText}>{feature}</Text>
-                </View>
-              ))}
-            </View>
-
+        {hasActiveSubscription && subscription && (
+          <View style={styles.currentPlanCard}>
+            <Text style={styles.currentPlanBadge}>✓ Active</Text>
+            <Text style={styles.currentPlanTitle}>Current Plan</Text>
+            <Text style={styles.currentPlanName}>
+              {subscription.plan === 'monthly' ? 'Monthly' : 'Yearly'} Subscription
+            </Text>
+            <Text style={styles.currentPlanExpiry}>
+              {subscription.autoRenew ? 'Renews' : 'Expires'} on{' '}
+              {subscription.endDate.toLocaleDateString()}
+            </Text>
             <TouchableOpacity
-              style={[
-                styles.subscribeButton,
-                plan.popular && styles.popularSubscribeButton,
-              ]}
-              onPress={() => handleSubscribe(plan.id)}
+              style={styles.manageButton}
+              onPress={handleManageSubscription}
             >
-              <Text
-                style={[
-                  styles.subscribeButtonText,
-                  plan.popular && styles.popularSubscribeButtonText,
-                ]}
-              >
-                {hasActiveSubscription ? 'Switch Plan' : 'Subscribe Now'}
-              </Text>
+              <Text style={styles.manageButtonText}>Manage Subscription</Text>
             </TouchableOpacity>
           </View>
-        ))}
-      </View>
+        )}
 
-      <View style={styles.benefitsSection}>
-        <Text style={styles.benefitsTitle}>Why Subscribe?</Text>
+        <View style={styles.plansContainer}>
+          {plans.map((plan) => (
+            <View
+              key={plan.id}
+              style={[styles.planCard, plan.popular && styles.popularPlan]}
+            >
+              {plan.popular && (
+                <View style={styles.popularBadge}>
+                  <Text style={styles.popularBadgeText}>⭐ Most Popular</Text>
+                </View>
+              )}
 
-        <View style={styles.benefitCard}>
-          <Text style={styles.benefitIcon}>📚</Text>
-          <View style={styles.benefitContent}>
-            <Text style={styles.benefitTitle}>Comprehensive Content</Text>
-            <Text style={styles.benefitDescription}>
-              Access to all premium TEF practice papers covering every section
-            </Text>
-          </View>
+              <Text style={styles.planName}>{plan.name}</Text>
+
+              <View style={styles.priceContainer}>
+                <Text style={styles.price}>{plan.price}</Text>
+                <Text style={styles.period}>{plan.period}</Text>
+              </View>
+
+              {plan.savings && (
+                <View style={styles.savingsBadge}>
+                  <Text style={styles.savingsText}>{plan.savings}</Text>
+                </View>
+              )}
+
+              <View style={styles.featuresContainer}>
+                {plan.features.map((feature, index) => (
+                  <View key={index} style={styles.featureRow}>
+                    <Text style={styles.checkmark}>✓</Text>
+                    <Text style={styles.featureText}>{feature}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.subscribeButton,
+                  plan.popular && styles.popularSubscribeButton,
+                ]}
+                onPress={() => handleSubscribe(plan.id)}
+              >
+                <Text
+                  style={[
+                    styles.subscribeButtonText,
+                    plan.popular && styles.popularSubscribeButtonText,
+                  ]}
+                >
+                  {hasActiveSubscription ? 'Switch Plan' : 'Subscribe Now'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))}
         </View>
 
-        <View style={styles.benefitCard}>
-          <Text style={styles.benefitIcon}>📊</Text>
-          <View style={styles.benefitContent}>
-            <Text style={styles.benefitTitle}>Track Your Progress</Text>
-            <Text style={styles.benefitDescription}>
-              Detailed analytics to help you improve and identify weak areas
-            </Text>
-          </View>
-        </View>
+        <View style={styles.benefitsSection}>
+          <Text style={styles.benefitsTitle}>Why Subscribe?</Text>
 
-        <View style={styles.benefitCard}>
-          <Text style={styles.benefitIcon}>🎯</Text>
-          <View style={styles.benefitContent}>
-            <Text style={styles.benefitTitle}>Exam-Ready Practice</Text>
-            <Text style={styles.benefitDescription}>
-              Realistic test conditions with timed tests and instant feedback
-            </Text>
+          <View style={styles.benefitCard}>
+            <Text style={styles.benefitIcon}>📚</Text>
+            <View style={styles.benefitContent}>
+              <Text style={styles.benefitTitle}>Comprehensive Content</Text>
+              <Text style={styles.benefitDescription}>
+                Access to all premium TEF practice papers covering every section
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.benefitCard}>
+            <Text style={styles.benefitIcon}>📊</Text>
+            <View style={styles.benefitContent}>
+              <Text style={styles.benefitTitle}>Track Your Progress</Text>
+              <Text style={styles.benefitDescription}>
+                Detailed analytics to help you improve and identify weak areas
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.benefitCard}>
+            <Text style={styles.benefitIcon}>🎯</Text>
+            <View style={styles.benefitContent}>
+              <Text style={styles.benefitTitle}>Exam-Ready Practice</Text>
+              <Text style={styles.benefitDescription}>
+                Realistic test conditions with timed tests and instant feedback
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
