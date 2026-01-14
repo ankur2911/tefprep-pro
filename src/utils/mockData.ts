@@ -1,0 +1,58 @@
+import { Product } from '../types';
+
+export const MOCK_PRODUCTS: Product[] = [
+  {
+    id: '1',
+    name: 'Wireless Headphones',
+    description: 'Premium noise-cancelling wireless headphones with 30-hour battery life',
+    price: 299.99,
+    image: 'https://via.placeholder.com/300x300/4A90E2/ffffff?text=Headphones',
+    category: 'Electronics',
+    inStock: true,
+  },
+  {
+    id: '2',
+    name: 'Smart Watch',
+    description: 'Fitness tracker with heart rate monitor and GPS',
+    price: 399.99,
+    image: 'https://via.placeholder.com/300x300/50C878/ffffff?text=Smart+Watch',
+    category: 'Electronics',
+    inStock: true,
+  },
+  {
+    id: '3',
+    name: 'Laptop Backpack',
+    description: 'Water-resistant backpack with multiple compartments',
+    price: 79.99,
+    image: 'https://via.placeholder.com/300x300/FF6B6B/ffffff?text=Backpack',
+    category: 'Accessories',
+    inStock: true,
+  },
+  {
+    id: '4',
+    name: 'Portable Charger',
+    description: '20,000mAh power bank with fast charging',
+    price: 49.99,
+    image: 'https://via.placeholder.com/300x300/FFA500/ffffff?text=Charger',
+    category: 'Electronics',
+    inStock: true,
+  },
+  {
+    id: '5',
+    name: 'Bluetooth Speaker',
+    description: 'Waterproof speaker with 360-degree sound',
+    price: 129.99,
+    image: 'https://via.placeholder.com/300x300/9B59B6/ffffff?text=Speaker',
+    category: 'Electronics',
+    inStock: false,
+  },
+  {
+    id: '6',
+    name: 'Phone Case',
+    description: 'Shockproof case with card holder',
+    price: 24.99,
+    image: 'https://via.placeholder.com/300x300/3498DB/ffffff?text=Phone+Case',
+    category: 'Accessories',
+    inStock: true,
+  },
+];
