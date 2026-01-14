@@ -83,12 +83,18 @@ export default function ProfileScreen({ navigation }: Props) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('ProgressTab')}
+        >
           <Text style={styles.menuItemText}>Test History</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => Alert.alert('Settings', 'Settings screen coming soon!')}
+        >
           <Text style={styles.menuItemText}>Settings</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
@@ -97,17 +103,58 @@ export default function ProfileScreen({ navigation }: Props) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Support</Text>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() =>
+            Alert.alert(
+              'Help & FAQ',
+              'Common Questions:\n\n' +
+                '• How do I access premium papers?\n' +
+                '  Subscribe to Premium in the Subscription section.\n\n' +
+                '• How are tests scored?\n' +
+                '  Each correct answer = 1 point. Passing score is 60%.\n\n' +
+                '• Can I retake tests?\n' +
+                '  Yes! Take tests as many times as you want.'
+            )
+          }
+        >
           <Text style={styles.menuItemText}>Help & FAQ</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() =>
+            Alert.alert(
+              'Contact Support',
+              'Need help?\n\nEmail: support@tefprep.com\n\nWe typically respond within 24 hours.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Send Email',
+                  onPress: () =>
+                    Alert.alert('Email', 'Email client would open here in production'),
+                },
+              ]
+            )
+          }
+        >
           <Text style={styles.menuItemText}>Contact Support</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() =>
+            Alert.alert(
+              'About TEFPrep Pro',
+              'Version 1.0.0\n\n' +
+                'TEFPrep Pro helps you prepare for the Test d\'Évaluation de Français (TEF) certification.\n\n' +
+                'Practice with real exam-style questions and track your progress.\n\n' +
+                '© 2024 TEFPrep Pro'
+            )
+          }
+        >
           <Text style={styles.menuItemText}>About TEFPrep Pro</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
