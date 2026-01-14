@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../utils/colors';
@@ -38,6 +39,11 @@ export default function ProgressScreen({ navigation }: Props) {
       setAttempts(userAttempts);
     } catch (error) {
       console.error('Error loading attempts:', error);
+      Alert.alert(
+        'Error',
+        'Failed to load your test history. Please try again later.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setLoading(false);
     }

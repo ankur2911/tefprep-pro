@@ -158,7 +158,7 @@ function MainTabs() {
 
 // Root Navigator with Auth Check
 export default function AppNavigator() {
-  const { user, loading } = useAuth();
+  const { user, loading, guestMode } = useAuth();
 
   if (loading) {
     return (
@@ -171,7 +171,7 @@ export default function AppNavigator() {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {user ? (
+      {user || guestMode ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen

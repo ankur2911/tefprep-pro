@@ -80,14 +80,29 @@ export const testAttemptService = {
       };
     }
 
-    const totalTests = attempts.length;
-    const totalScore = attempts.reduce((sum, attempt) => sum + attempt.score, 0);
-    const totalQuestions = attempts.reduce((sum, attempt) => sum + attempt.totalQuestions, 0);
-    const averageScore = (totalScore / totalQuestions) * 100;
-    const bestScore = Math.max(
-      ...attempts.map(a => (a.score / a.totalQuestions) * 100)
+    // Filter out invalid attempts (where totalQuestions is 0 or undefined)
+    const validAttempts = attempts.filter(
+      attempt => attempt.totalQuestions && attempt.totalQuestions > 0
     );
-    const totalTimeSpent = attempts.reduce((sum, attempt) => sum + attempt.timeSpent, 0);
+
+    if (validAttempts.length === 0) {
+      return {
+        totalTests: attempts.length,
+        averageScore: 0,
+        bestScore: 0,
+        totalTimeSpent: Math.round(
+          attempts.reduce((sum, attempt) => sum + (attempt.timeSpent || 0), 0) / 60
+        ),
+      };
+    }
+
+    const totalTests = attempts.length;
+    const totalScore = validAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0);
+    const totalQuestions = validAttempts.reduce((sum, attempt) => sum + attempt.totalQuestions, 0);
+    const averageScore = totalQuestions > 0 ? (totalScore / totalQuestions) * 100 : 0;
+    const percentages = validAttempts.map(a => (a.score / a.totalQuestions) * 100);
+    const bestScore = percentages.length > 0 ? Math.max(...percentages) : 0;
+    const totalTimeSpent = attempts.reduce((sum, attempt) => sum + (attempt.timeSpent || 0), 0);
 
     return {
       totalTests,

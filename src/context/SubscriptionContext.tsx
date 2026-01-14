@@ -30,14 +30,22 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
       const subDoc = await getDoc(doc(db, 'subscriptions', user.uid));
       if (subDoc.exists()) {
         const data = subDoc.data();
+
+        // Validate required fields
+        if (!data.startDate || !data.endDate || !data.startDate.toDate || !data.endDate.toDate) {
+          console.error('Subscription document missing required date fields');
+          setSubscription(null);
+          return;
+        }
+
         setSubscription({
           id: subDoc.id,
           userId: user.uid,
-          status: data.status,
-          plan: data.plan,
+          status: data.status || 'inactive',
+          plan: data.plan || 'monthly',
           startDate: data.startDate.toDate(),
           endDate: data.endDate.toDate(),
-          autoRenew: data.autoRenew,
+          autoRenew: data.autoRenew ?? true,
         });
       } else {
         setSubscription(null);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -24,12 +24,15 @@ export default function TestScreen({ navigation, route }: Props) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<{ [questionId: string]: number }>({});
   const [timeRemaining, setTimeRemaining] = useState(paper.duration * 60);
+  const handleSubmitRef = useRef<() => void>();
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
-          handleSubmit();
+          if (handleSubmitRef.current) {
+            handleSubmitRef.current();
+          }
           return 0;
         }
         return prev - 1;
@@ -73,6 +76,9 @@ export default function TestScreen({ navigation, route }: Props) {
       questions,
     });
   };
+
+  // Update ref whenever handleSubmit changes
+  handleSubmitRef.current = handleSubmit;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

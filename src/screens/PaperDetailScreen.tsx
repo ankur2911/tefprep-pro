@@ -21,11 +21,26 @@ type Props = {
 };
 
 export default function PaperDetailScreen({ navigation, route }: Props) {
-  const { paper } = route.params;
+  const paper = route.params?.paper;
   const { user } = useAuth();
   const { canAccessPaper, hasActiveSubscription } = useSubscription();
   const [attempts, setAttempts] = useState<TestAttempt[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Handle missing paper data
+  if (!paper) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Paper not found</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const hasAccess = canAccessPaper(paper.isPremium);
 
@@ -403,5 +418,27 @@ const styles = StyleSheet.create({
     color: Colors.textInverse,
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    color: Colors.textSecondary,
+    marginBottom: 20,
+  },
+  backButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: Colors.textInverse,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
