@@ -22,6 +22,9 @@ export default function HomeScreen({ navigation }: Props) {
   const { user } = useAuth();
   const featuredPapers = MOCK_PAPERS.slice(0, 3);
 
+  const totalPapers = MOCK_PAPERS.length;
+  const totalQuestions = MOCK_PAPERS.reduce((sum, paper) => sum + paper.questionsCount, 0);
+
   const renderPaper = ({ item }: { item: Paper }) => (
     <TouchableOpacity
       style={styles.paperCard}
@@ -58,15 +61,15 @@ export default function HomeScreen({ navigation }: Props) {
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>6</Text>
+          <Text style={styles.statNumber}>{totalPapers}</Text>
           <Text style={styles.statLabel}>Practice Papers</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>100+</Text>
+          <Text style={styles.statNumber}>{totalQuestions}+</Text>
           <Text style={styles.statLabel}>Questions</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>5</Text>
+          <Text style={styles.statNumber}>6</Text>
           <Text style={styles.statLabel}>Categories</Text>
         </View>
       </View>
