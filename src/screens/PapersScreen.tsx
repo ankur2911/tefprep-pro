@@ -71,13 +71,15 @@ export default function PapersScreen({ navigation }: Props) {
       <TouchableOpacity
         style={styles.paperCard}
         onPress={() => navigation.navigate('PaperDetail', { paper: item })}
+        activeOpacity={0.7}
       >
         <View style={styles.paperHeader}>
           <View style={styles.paperBadges}>
             <View
               style={[
                 styles.difficultyBadge,
-                { backgroundColor: getDifficultyColor(item.difficulty) + '20' },
+                { backgroundColor: getDifficultyColor(item.difficulty) + '15' },
+                { borderColor: getDifficultyColor(item.difficulty) + '40' },
               ]}
             >
               <Text
@@ -92,7 +94,7 @@ export default function PapersScreen({ navigation }: Props) {
 
             {item.isPremium && (
               <View style={styles.premiumBadge}>
-                <Text style={styles.premiumText}>👑 Premium</Text>
+                <Text style={styles.premiumText}>Premium</Text>
               </View>
             )}
           </View>
@@ -104,24 +106,28 @@ export default function PapersScreen({ navigation }: Props) {
           )}
         </View>
 
-        <Text style={styles.paperTitle}>{item.title}</Text>
+        <Text style={styles.paperTitle} numberOfLines={2}>
+          {item.title}
+        </Text>
         <Text style={styles.paperDescription} numberOfLines={2}>
           {item.description}
         </Text>
 
-        <View style={styles.paperMeta}>
-          <View style={styles.metaItem}>
-            <Text style={styles.metaIcon}>📝</Text>
-            <Text style={styles.metaText}>{item.questionsCount} questions</Text>
+        <View style={styles.paperFooter}>
+          <View style={styles.paperMeta}>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaIcon}>📝</Text>
+              <Text style={styles.metaText}>{item.questionsCount}</Text>
+            </View>
+
+            <View style={styles.metaItem}>
+              <Text style={styles.metaIcon}>⏱️</Text>
+              <Text style={styles.metaText}>{item.duration} min</Text>
+            </View>
           </View>
 
-          <View style={styles.metaItem}>
-            <Text style={styles.metaIcon}>⏱️</Text>
-            <Text style={styles.metaText}>{item.duration} min</Text>
-          </View>
+          <Text style={styles.categoryTag}>{item.category}</Text>
         </View>
-
-        <Text style={styles.categoryTag}>{item.category}</Text>
       </TouchableOpacity>
     );
   };
@@ -136,6 +142,13 @@ export default function PapersScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Practice Papers</Text>
+        <Text style={styles.headerSubtitle}>
+          {filteredPapers.length} {filteredPapers.length === 1 ? 'paper' : 'papers'} available
+        </Text>
+      </View>
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -150,6 +163,7 @@ export default function PapersScreen({ navigation }: Props) {
               selectedCategory === category && styles.categoryChipSelected,
             ]}
             onPress={() => setSelectedCategory(category)}
+            activeOpacity={0.7}
           >
             <Text
               style={[
@@ -168,8 +182,10 @@ export default function PapersScreen({ navigation }: Props) {
         renderItem={renderPaper}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>📚</Text>
             <Text style={styles.emptyText}>No papers found</Text>
             <Text style={styles.emptySubtext}>
               Try selecting a different category
@@ -191,19 +207,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  header: {
+    backgroundColor: Colors.surface,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
   categoriesScroll: {
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   categoriesContainer: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     gap: 8,
   },
   categoryChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
     backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -213,9 +248,9 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   categoryChipText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
-    color: Colors.textPrimary,
+    color: Colors.textSecondary,
   },
   categoryChipTextSelected: {
     color: Colors.textInverse,
@@ -228,93 +263,121 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   paperHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'flex-start',
+    marginBottom: 10,
   },
   paperBadges: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
+    flexWrap: 'wrap',
+    flex: 1,
   },
   difficultyBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    borderWidth: 1,
   },
   difficultyText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
   premiumBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
     backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
   },
   premiumText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: '#92400E',
   },
   lockedIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 8,
   },
   lockText: {
-    fontSize: 16,
+    fontSize: 14,
   },
   paperTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: Colors.textPrimary,
-    marginBottom: 8,
+    marginBottom: 6,
+    lineHeight: 22,
   },
   paperDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 18,
     marginBottom: 12,
+  },
+  paperFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
   paperMeta: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 12,
+    gap: 12,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   metaIcon: {
-    fontSize: 16,
+    fontSize: 14,
   },
   metaText: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textSecondary,
     fontWeight: '500',
   },
   categoryTag: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.primary,
     fontWeight: '600',
+    backgroundColor: Colors.primary + '10',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
   },
   emptyContainer: {
     alignItems: 'center',
-    paddingTop: 60,
+    paddingTop: 80,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: 16,
   },
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: Colors.textPrimary,
     marginBottom: 8,
   },
   emptySubtext: {
