@@ -11,6 +11,7 @@ export const Colors = {
   secondaryDark: '#2563EB',
 
   // Accent colors
+  accent: '#3B82F6', // Blue accent
   success: '#10B981', // Green - correct answers
   warning: '#F59E0B', // Orange - warnings
   error: '#EF4444', // Red - incorrect answers

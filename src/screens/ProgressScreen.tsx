@@ -151,7 +151,7 @@ export default function ProgressScreen({ navigation }: Props) {
             </Text>
             <TouchableOpacity
               style={styles.browseButton}
-              onPress={() => navigation.navigate('Papers')}
+              onPress={() => navigation.navigate('PapersTab')}
             >
               <Text style={styles.browseButtonText}>Browse Papers</Text>
             </TouchableOpacity>

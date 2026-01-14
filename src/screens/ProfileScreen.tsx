@@ -1,37 +1,90 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
+import { Colors } from '../utils/colors';
 
-export default function ProfileScreen() {
+type Props = {
+  navigation: NativeStackNavigationProp<any>;
+};
+
+export default function ProfileScreen({ navigation }: Props) {
+  const { user, logout } = useAuth();
+  const { subscription, hasActiveSubscription } = useSubscription();
+
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', onPress: () => Alert.alert('Logged Out', 'You have been logged out') },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (error) {
+            Alert.alert('Error', 'Failed to logout');
+          }
+        },
+      },
     ]);
+  };
+
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.notLoggedIn}>Please log in to view your profile</Text>
+      </View>
+    );
+  }
+
+  const getInitials = (email: string) => {
+    return email.substring(0, 2).toUpperCase();
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>JD</Text>
+          <Text style={styles.avatarText}>{getInitials(user.email || 'U')}</Text>
         </View>
-        <Text style={styles.name}>John Doe</Text>
-        <Text style={styles.email}>john.doe@example.com</Text>
+        <Text style={styles.email}>{user.email}</Text>
+        {hasActiveSubscription ? (
+          <View style={styles.premiumBadge}>
+            <Text style={styles.premiumText}>Premium Member</Text>
+          </View>
+        ) : (
+          <View style={styles.freeBadge}>
+            <Text style={styles.freeText}>Free Plan</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuItemText}>My Orders</Text>
+        <Text style={styles.sectionTitle}>Subscription</Text>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Subscription')}
+        >
+          <Text style={styles.menuItemText}>
+            {hasActiveSubscription ? 'Manage Subscription' : 'Upgrade to Premium'}
+          </Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Account</Text>
 
         <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuItemText}>Saved Addresses</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuItemText}>Payment Methods</Text>
+          <Text style={styles.menuItemText}>Test History</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
 
@@ -42,13 +95,20 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Support</Text>
+
         <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuItemText}>Help & Support</Text>
+          <Text style={styles.menuItemText}>Help & FAQ</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuItemText}>About</Text>
+          <Text style={styles.menuItemText}>Contact Support</Text>
+          <Text style={styles.menuItemArrow}>›</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuItemText}>About TEFPrep Pro</Text>
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
       </View>
@@ -56,6 +116,10 @@ export default function ProfileScreen() {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
+
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Version 1.0.0</Text>
+      </View>
     </ScrollView>
   );
 }
@@ -63,13 +127,19 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background,
+  },
+  notLoggedIn: {
+    textAlign: 'center',
+    marginTop: 40,
+    fontSize: 16,
+    color: Colors.textSecondary,
   },
   header: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: Colors.primary,
     padding: 30,
     alignItems: 'center',
-    paddingTop: 50,
+    paddingTop: 20,
   },
   avatar: {
     width: 80,
@@ -83,49 +153,83 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#4A90E2',
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 5,
+    color: Colors.primary,
   },
   email: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#fff',
-    opacity: 0.9,
+    marginBottom: 12,
+  },
+  premiumBadge: {
+    backgroundColor: Colors.accent,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  premiumText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  freeBadge: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  freeText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   section: {
-    backgroundColor: '#fff',
-    marginTop: 15,
+    marginTop: 20,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: Colors.textSecondary,
+    marginLeft: 20,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   menuItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 18,
+    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.border,
   },
   menuItemText: {
     fontSize: 16,
-    color: '#333',
+    color: Colors.textPrimary,
   },
   menuItemArrow: {
     fontSize: 24,
-    color: '#ccc',
+    color: Colors.textSecondary,
   },
   logoutButton: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#EF4444',
     margin: 20,
+    marginTop: 30,
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
   },
   logoutButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  footer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
   },
 });
