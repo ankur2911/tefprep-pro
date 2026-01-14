@@ -32,12 +32,16 @@ export default function PapersScreen({ navigation }: Props) {
   const loadPapers = async () => {
     try {
       setLoading(true);
-      const fetchedPapers = await paperService.getAllPapers();
-      if (fetchedPapers.length > 0) {
-        setPapers(fetchedPapers);
-      } else {
-        setPapers(MOCK_PAPERS);
-      }
+      // Use mock data for now - later you can switch to Firebase
+      setPapers(MOCK_PAPERS);
+
+      // Uncomment below to use Firebase data instead:
+      // const fetchedPapers = await paperService.getAllPapers();
+      // if (fetchedPapers.length > 0) {
+      //   setPapers(fetchedPapers);
+      // } else {
+      //   setPapers(MOCK_PAPERS);
+      // }
     } catch (error) {
       console.log('Using mock data:', error);
       setPapers(MOCK_PAPERS);
