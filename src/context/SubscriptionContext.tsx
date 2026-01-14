@@ -9,6 +9,7 @@ interface SubscriptionContextType {
   loading: boolean;
   hasActiveSubscription: boolean;
   canAccessPaper: (isPremium: boolean) => boolean;
+  refreshSubscription: () => Promise<void>;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -18,38 +19,38 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchSubscription = async () => {
+    if (!user) {
+      setSubscription(null);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const subDoc = await getDoc(doc(db, 'subscriptions', user.uid));
+      if (subDoc.exists()) {
+        const data = subDoc.data();
+        setSubscription({
+          id: subDoc.id,
+          userId: user.uid,
+          status: data.status,
+          plan: data.plan,
+          startDate: data.startDate.toDate(),
+          endDate: data.endDate.toDate(),
+          autoRenew: data.autoRenew,
+        });
+      } else {
+        setSubscription(null);
+      }
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
+      setSubscription(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchSubscription = async () => {
-      if (!user) {
-        setSubscription(null);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const subDoc = await getDoc(doc(db, 'subscriptions', user.uid));
-        if (subDoc.exists()) {
-          const data = subDoc.data();
-          setSubscription({
-            id: subDoc.id,
-            userId: user.uid,
-            status: data.status,
-            plan: data.plan,
-            startDate: data.startDate.toDate(),
-            endDate: data.endDate.toDate(),
-            autoRenew: data.autoRenew,
-          });
-        } else {
-          setSubscription(null);
-        }
-      } catch (error) {
-        console.error('Error fetching subscription:', error);
-        setSubscription(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSubscription();
   }, [user]);
 
@@ -61,6 +62,10 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
     return hasActiveSubscription;
   };
 
+  const refreshSubscription = async () => {
+    await fetchSubscription();
+  };
+
   return (
     <SubscriptionContext.Provider
       value={{
@@ -68,6 +73,7 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
         loading,
         hasActiveSubscription,
         canAccessPaper,
+        refreshSubscription,
       }}
     >
       {children}
