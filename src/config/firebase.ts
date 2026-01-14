@@ -3,15 +3,14 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Firebase configuration
-// IMPORTANT: Replace these with your actual Firebase project credentials
-// Get these from Firebase Console > Project Settings > Your apps > SDK setup and configuration
+// TEFPrep Pro Firebase Project
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCIZ5IsEMJKdr5Cc3QKrXhOrTkcr3nvSQc",
+  authDomain: "tefprep-pro.firebaseapp.com",
+  projectId: "tefprep-pro",
+  storageBucket: "tefprep-pro.firebasestorage.app",
+  messagingSenderId: "136999807438",
+  appId: "1:136999807438:web:f282a51b9736ab7cb6239f"
 };
 
 // Initialize Firebase
