@@ -1,22 +1,49 @@
-export interface Product {
+export interface Question {
   id: string;
-  name: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation?: string;
+}
+
+export interface Paper {
+  id: string;
+  title: string;
   description: string;
-  price: number;
-  image: string;
   category: string;
-  inStock: boolean;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  duration: number;
+  questionsCount: number;
+  thumbnail: string;
+  isPremium: boolean;
+  questions?: Question[];
 }
 
-export interface CartItem {
-  product: Product;
-  quantity: number;
-}
-
-export interface Order {
+export interface TestAttempt {
   id: string;
-  items: CartItem[];
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered';
-  createdAt: Date;
+  paperId: string;
+  userId: string;
+  score: number;
+  totalQuestions: number;
+  answers: { [questionId: string]: number };
+  completedAt: Date;
+  timeSpent: number;
+}
+
+export interface UserProgress {
+  userId: string;
+  completedPapers: string[];
+  attemptedPapers: string[];
+  totalScore: number;
+  averageScore: number;
+}
+
+export interface Subscription {
+  id: string;
+  userId: string;
+  status: 'active' | 'canceled' | 'expired';
+  plan: 'monthly' | 'yearly';
+  startDate: Date;
+  endDate: Date;
+  autoRenew: boolean;
 }
