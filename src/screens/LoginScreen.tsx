@@ -18,7 +18,7 @@ type Props = {
 };
 
 export default function LoginScreen({ navigation }: Props) {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, continueAsGuest } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
@@ -27,6 +27,19 @@ export default function LoginScreen({ navigation }: Props) {
   const handleSubmit = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    // Password validation
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
       return;
     }
 
@@ -43,6 +56,10 @@ export default function LoginScreen({ navigation }: Props) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGuestMode = () => {
+    continueAsGuest();
   };
 
   return (
@@ -90,7 +107,7 @@ export default function LoginScreen({ navigation }: Props) {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={handleGuestMode}>
             <Text style={styles.guestText}>Continue as Guest</Text>
           </TouchableOpacity>
         </View>

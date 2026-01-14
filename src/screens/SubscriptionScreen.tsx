@@ -28,7 +28,7 @@ export default function SubscriptionScreen({ navigation }: Props) {
   useFocusEffect(
     React.useCallback(() => {
       refreshSubscription();
-    }, [])
+    }, [refreshSubscription])
   );
 
   const plans = [
@@ -86,6 +86,9 @@ export default function SubscriptionScreen({ navigation }: Props) {
           onPress: async () => {
             setLoading(true);
             try {
+              // Refresh subscription data first
+              await refreshSubscription();
+
               if (hasActiveSubscription) {
                 await subscriptionService.switchPlan(user.uid, planId);
                 Alert.alert(
@@ -119,14 +122,6 @@ export default function SubscriptionScreen({ navigation }: Props) {
                   ]
                 );
               }
-              // Refresh subscription data
-              await refreshSubscription();
-              // Navigate back after a short delay
-              setTimeout(() => {
-                if (navigation.canGoBack()) {
-                  navigation.goBack();
-                }
-              }, 1000);
             } catch (error: any) {
               Alert.alert('Error', error.message || 'Failed to subscribe');
             } finally {
@@ -166,13 +161,18 @@ export default function SubscriptionScreen({ navigation }: Props) {
                       await refreshSubscription();
                       Alert.alert(
                         'Subscription Cancelled',
-                        'Your subscription has been cancelled. You can still access premium content until the end of your billing period.'
+                        'Your subscription has been cancelled. You can still access premium content until the end of your billing period.',
+                        [
+                          {
+                            text: 'OK',
+                            onPress: () => {
+                              if (navigation.canGoBack()) {
+                                navigation.goBack();
+                              }
+                            },
+                          },
+                        ]
                       );
-                      setTimeout(() => {
-                        if (navigation.canGoBack()) {
-                          navigation.goBack();
-                        }
-                      }, 1000);
                     } catch (error: any) {
                       Alert.alert('Error', error.message || 'Failed to cancel subscription');
                     } finally {
