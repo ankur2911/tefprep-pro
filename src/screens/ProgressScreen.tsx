@@ -75,7 +75,7 @@ export default function ProgressScreen({ navigation }: Props) {
         </Text>
         <TouchableOpacity
           style={styles.loginButton}
-          onPress={() => navigation.navigate('Login')}
+          onPress={() => navigation.getParent()?.navigate('Login' as never)}
         >
           <Text style={styles.loginButtonText}>Go to Login</Text>
         </TouchableOpacity>
