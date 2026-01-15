@@ -11,6 +11,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { Colors } from '../utils/colors';
+import { isAdmin } from '../utils/adminCheck';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -48,6 +49,8 @@ export default function ProfileScreen({ navigation }: Props) {
   const getInitials = (email: string) => {
     return email.substring(0, 2).toUpperCase();
   };
+
+  const userIsAdmin = isAdmin(user?.email);
 
   return (
     <ScrollView style={styles.container}>
@@ -99,6 +102,20 @@ export default function ProfileScreen({ navigation }: Props) {
           <Text style={styles.menuItemArrow}>›</Text>
         </TouchableOpacity>
       </View>
+
+      {userIsAdmin && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Developer Tools</Text>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Admin')}
+          >
+            <Text style={styles.menuItemText}>🛠️ Admin Panel</Text>
+            <Text style={styles.menuItemArrow}>›</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Support</Text>

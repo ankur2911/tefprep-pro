@@ -14,6 +14,7 @@ import { Paper, TestAttempt } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { testAttemptService } from '../services/testAttemptService';
+import { getQuestionCount } from '../utils/mockData';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -151,7 +152,7 @@ export default function PaperDetailScreen({ navigation, route }: Props) {
             <View style={styles.infoItem}>
               <Text style={styles.infoIcon}>📝</Text>
               <View>
-                <Text style={styles.infoValue}>{paper.questionsCount}</Text>
+                <Text style={styles.infoValue}>{getQuestionCount(paper.id)}</Text>
                 <Text style={styles.infoLabel}>Questions</Text>
               </View>
             </View>

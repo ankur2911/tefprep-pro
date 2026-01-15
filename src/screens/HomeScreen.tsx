@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,11 @@ import {
   ScrollView,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { MOCK_PAPERS } from '../utils/mockData';
+import { MOCK_PAPERS, getQuestionCount } from '../utils/mockData';
 import { Paper } from '../types';
 import { Colors } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
+import { paperService } from '../services/paperService';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -19,10 +20,29 @@ type Props = {
 
 export default function HomeScreen({ navigation }: Props) {
   const { user } = useAuth();
-  const featuredPapers = MOCK_PAPERS.slice(0, 3);
+  const [papers, setPapers] = useState<Paper[]>(MOCK_PAPERS);
 
-  const totalPapers = MOCK_PAPERS.length;
-  const totalQuestions = MOCK_PAPERS.reduce((sum, paper) => sum + paper.questionsCount, 0);
+  useEffect(() => {
+    loadPapers();
+  }, []);
+
+  const loadPapers = async () => {
+    try {
+      const fetchedPapers = await paperService.getAllPapers();
+      if (fetchedPapers.length > 0) {
+        setPapers(fetchedPapers);
+      } else {
+        setPapers(MOCK_PAPERS);
+      }
+    } catch (error) {
+      console.error('Error loading papers:', error);
+      setPapers(MOCK_PAPERS);
+    }
+  };
+
+  const featuredPapers = papers.slice(0, 3);
+  const totalPapers = papers.length;
+  const totalQuestions = papers.reduce((sum, paper) => sum + getQuestionCount(paper.id), 0);
 
   const getCategoryIcon = (category: string) => {
     const icons: { [key: string]: string } = {
@@ -77,7 +97,7 @@ export default function HomeScreen({ navigation }: Props) {
             <Text style={styles.paperDuration}>{item.duration} min</Text>
             <Text style={styles.metaSeparator}>•</Text>
             <Text style={styles.metaIcon}>📝</Text>
-            <Text style={styles.paperQuestions}>{item.questionsCount} questions</Text>
+            <Text style={styles.paperQuestions}>{getQuestionCount(item.id)} questions</Text>
           </View>
           <View style={[
             styles.difficultyBadge,

@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { Paper, Question } from '../types';
 import { MOCK_QUESTIONS } from '../utils/mockData';
 import { Colors } from '../utils/colors';
+import { paperService } from '../services/paperService';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -20,11 +22,39 @@ type Props = {
 
 export default function TestScreen({ navigation, route }: Props) {
   const { paper } = route.params;
-  const [questions] = useState<Question[]>(MOCK_QUESTIONS[paper.id] || []);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<{ [questionId: string]: number }>({});
   const [timeRemaining, setTimeRemaining] = useState(paper.duration * 60);
   const handleSubmitRef = useRef<() => void>();
+
+  useEffect(() => {
+    loadQuestions();
+  }, []);
+
+  const loadQuestions = async () => {
+    try {
+      setLoading(true);
+      // Try to load from Firebase first
+      const firebaseQuestions = await paperService.getQuestionsForPaper(paper.id);
+
+      if (firebaseQuestions.length > 0) {
+        setQuestions(firebaseQuestions);
+        console.log(`Loaded ${firebaseQuestions.length} questions from Firebase`);
+      } else {
+        // Fallback to mock data
+        const mockQuestions = MOCK_QUESTIONS[paper.id] || [];
+        setQuestions(mockQuestions);
+        console.log(`Using ${mockQuestions.length} mock questions`);
+      }
+    } catch (error) {
+      console.error('Error loading questions, using mock data:', error);
+      setQuestions(MOCK_QUESTIONS[paper.id] || []);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -90,10 +120,25 @@ export default function TestScreen({ navigation, route }: Props) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  if (loading) {
+    return (
+      <View style={styles.emptyContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>Loading questions...</Text>
+      </View>
+    );
+  }
+
   if (!questions.length) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>No questions available</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -286,9 +331,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   emptyText: {
     fontSize: 18,
     color: Colors.textSecondary,
+    marginBottom: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginTop: 16,
+  },
+  backButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: Colors.textInverse,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

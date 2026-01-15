@@ -14,7 +14,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../utils/colors';
 import { Paper } from '../types';
 import { paperService } from '../services/paperService';
-import { MOCK_PAPERS, CATEGORIES } from '../utils/mockData';
+import { MOCK_PAPERS, CATEGORIES, getQuestionCount } from '../utils/mockData';
 import { useSubscription } from '../context/SubscriptionContext';
 
 type Props = {
@@ -141,7 +141,7 @@ export default function PapersScreen({ navigation }: Props) {
           <View style={styles.paperMeta}>
             <View style={styles.metaItem}>
               <Text style={styles.metaIcon}>📝</Text>
-              <Text style={styles.metaText}>{item.questionsCount}</Text>
+              <Text style={styles.metaText}>{getQuestionCount(item.id)}</Text>
             </View>
 
             <View style={styles.metaItem}>

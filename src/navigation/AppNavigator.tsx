@@ -14,6 +14,7 @@ import ProgressScreen from '../screens/ProgressScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
+import AdminScreen from '../screens/AdminScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -80,6 +81,11 @@ function ProfileStack() {
         name="Profile"
         component={ProfileScreen}
         options={{ title: 'Profile' }}
+      />
+      <Stack.Screen
+        name="Admin"
+        component={AdminScreen}
+        options={{ title: 'Admin Panel' }}
       />
     </Stack.Navigator>
   );
