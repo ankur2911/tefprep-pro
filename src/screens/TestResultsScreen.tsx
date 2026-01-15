@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { Paper, Question } from '../types';
 import { Colors } from '../utils/colors';
+import { useAuth } from '../context/AuthContext';
+import { testAttemptService } from '../services/testAttemptService';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -20,14 +22,42 @@ type Props = {
       totalQuestions: number;
       answers: { [questionId: string]: number };
       questions: Question[];
+      timeSpent: number;
     };
   }, 'params'>;
 };
 
 export default function TestResultsScreen({ navigation, route }: Props) {
-  const { paper, score, totalQuestions, answers, questions } = route.params;
+  const { paper, score, totalQuestions, answers, questions, timeSpent } = route.params;
+  const { user } = useAuth();
+  const [saved, setSaved] = useState(false);
   const percentage = ((score / totalQuestions) * 100).toFixed(1);
   const passed = parseFloat(percentage) >= 60;
+
+  // Save test attempt to Firebase
+  useEffect(() => {
+    const saveAttempt = async () => {
+      if (!user || saved) return;
+
+      try {
+        await testAttemptService.saveAttempt({
+          userId: user.uid,
+          paperId: paper.id,
+          score,
+          totalQuestions,
+          timeSpent,
+          answers,
+          completedAt: new Date(),
+        });
+        setSaved(true);
+        console.log('Test attempt saved successfully');
+      } catch (error) {
+        console.error('Error saving test attempt:', error);
+      }
+    };
+
+    saveAttempt();
+  }, [user, saved]);
 
   return (
     <ScrollView style={styles.container}>
@@ -110,7 +140,7 @@ export default function TestResultsScreen({ navigation, route }: Props) {
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Home')}
+          onPress={() => navigation.navigate('HomeTab')}
         >
           <Text style={styles.buttonText}>Back to Home</Text>
         </TouchableOpacity>
