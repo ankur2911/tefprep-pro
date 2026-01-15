@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { doc, setDoc, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from './AuthContext';
 import { revenueCatService } from '../services/revenueCatService';
@@ -11,6 +11,7 @@ interface SubscriptionDetails {
   expirationDate: string | null;
   willRenew: boolean;
   plan: 'monthly' | 'yearly' | null;
+  isTestPremium?: boolean;
 }
 
 interface SubscriptionContextType {
@@ -30,13 +31,33 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
   const [loading, setLoading] = useState(true);
   const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
 
+  // Update isPremium flag in user document
+  const updateUserPremiumStatus = async (isPremium: boolean) => {
+    if (!user) return;
+
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        isPremium,
+        premiumUpdatedAt: Timestamp.fromDate(new Date()),
+      });
+      console.log(`✅ Updated user isPremium status to: ${isPremium}`);
+    } catch (error) {
+      console.error('❌ Failed to update user premium status:', error);
+    }
+  };
+
   // Sync RevenueCat data to Firestore for backup and analytics
   const syncToFirestore = async (customerInfo: CustomerInfo) => {
     if (!user) return;
 
     try {
       const details = await revenueCatService.getSubscriptionDetails();
-      if (!details || !details.hasActiveSubscription) return;
+      if (!details || !details.hasActiveSubscription) {
+        // User lost premium, update user document
+        await updateUserPremiumStatus(false);
+        return;
+      }
 
       const now = new Date();
       const expirationDate = details.expirationDate
@@ -62,6 +83,10 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
       };
 
       await setDoc(doc(db, 'subscriptions', user.uid), subscriptionData);
+
+      // Update isPremium flag in user document
+      await updateUserPremiumStatus(true);
+
       console.log('✅ Synced subscription to Firestore');
     } catch (error) {
       console.error('❌ Failed to sync to Firestore:', error);
@@ -77,6 +102,25 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
     }
 
     try {
+      // Check for test premium flag in Firestore
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      const isTestPremium = userDoc.exists() ? userDoc.data()?.testPremium === true : false;
+
+      if (isTestPremium) {
+        console.log('🧪 Test premium access enabled for user');
+        setSubscription({
+          hasActiveSubscription: true,
+          productIdentifier: 'test_premium',
+          expirationDate: null,
+          willRenew: false,
+          plan: null,
+          isTestPremium: true,
+        });
+        setLoading(false);
+        return;
+      }
+
       const details = await revenueCatService.getSubscriptionDetails();
 
       if (details) {
@@ -92,6 +136,7 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
           expirationDate: details.expirationDate,
           willRenew: details.willRenew,
           plan,
+          isTestPremium: false,
         });
 
         // Sync to Firestore if active
@@ -100,9 +145,13 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
           if (customerInfo) {
             await syncToFirestore(customerInfo);
           }
+        } else {
+          // No active subscription, update user document
+          await updateUserPremiumStatus(false);
         }
       } else {
         setSubscription(null);
+        await updateUserPremiumStatus(false);
       }
     } catch (error) {
       console.error('❌ Error fetching subscription:', error);

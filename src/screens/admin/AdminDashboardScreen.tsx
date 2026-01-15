@@ -62,7 +62,7 @@ export default function AdminDashboardScreen({ navigation }: Props) {
             key={index}
             style={[styles.card, { borderLeftColor: card.color }]}
             onPress={() => {
-              if (card.route === 'ManagePapers') {
+              if (card.route === 'ManagePapers' || card.route === 'ManageUsers') {
                 navigation.navigate(card.route);
               } else {
                 Alert.alert('Coming Soon', `${card.title} feature will be available soon!`);
