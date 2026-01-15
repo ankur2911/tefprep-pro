@@ -68,12 +68,16 @@ export default function TestScreen({ navigation, route }: Props) {
       return answers[question.id] === question.correctAnswer ? total + 1 : total;
     }, 0);
 
+    // Calculate time spent (total time - remaining time)
+    const timeSpent = (paper.duration * 60) - timeRemaining;
+
     navigation.replace('TestResults', {
       paper,
       score,
       totalQuestions: questions.length,
       answers,
       questions,
+      timeSpent,
     });
   };
 

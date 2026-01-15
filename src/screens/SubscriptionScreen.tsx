@@ -286,21 +286,21 @@ export default function SubscriptionScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.benefitCard}>
-            <Text style={styles.benefitIcon}>📊</Text>
+            <Text style={styles.benefitIcon}>🎯</Text>
             <View style={styles.benefitContent}>
-              <Text style={styles.benefitTitle}>Track Your Progress</Text>
+              <Text style={styles.benefitTitle}>Advanced Practice Papers</Text>
               <Text style={styles.benefitDescription}>
-                Detailed analytics to help you improve and identify weak areas
+                Access to B1, B2, and complete test simulations for advanced preparation
               </Text>
             </View>
           </View>
 
           <View style={styles.benefitCard}>
-            <Text style={styles.benefitIcon}>🎯</Text>
+            <Text style={styles.benefitIcon}>⚡</Text>
             <View style={styles.benefitContent}>
-              <Text style={styles.benefitTitle}>Exam-Ready Practice</Text>
+              <Text style={styles.benefitTitle}>Unlimited Practice</Text>
               <Text style={styles.benefitDescription}>
-                Realistic test conditions with timed tests and instant feedback
+                Take premium tests as many times as you want with no restrictions
               </Text>
             </View>
           </View>
