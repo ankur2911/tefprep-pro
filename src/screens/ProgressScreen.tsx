@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
 import { testAttemptService } from '../services/testAttemptService';
@@ -30,6 +31,15 @@ export default function ProgressScreen({ navigation }: Props) {
       setLoading(false);
     }
   }, [user]);
+
+  // Refresh attempts when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user) {
+        loadAttempts();
+      }
+    }, [user])
+  );
 
   const loadAttempts = async () => {
     if (!user) return;

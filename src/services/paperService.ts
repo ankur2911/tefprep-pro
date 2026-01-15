@@ -104,4 +104,19 @@ export const paperService = {
       throw error;
     }
   },
+
+  // Get questions for a paper from subcollection
+  async getQuestionsForPaper(paperId: string): Promise<Question[]> {
+    try {
+      const questionsRef = collection(db, 'papers', paperId, 'questions');
+      const snapshot = await getDocs(questionsRef);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      } as Question));
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+      throw error;
+    }
+  },
 };
