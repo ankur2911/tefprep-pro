@@ -104,7 +104,10 @@ function TabBarIcon({ label, focused }: { label: string; focused: boolean }) {
   return (
     <View style={styles.tabIcon}>
       <Text style={styles.tabIconText}>{iconMap[label]}</Text>
-      <Text style={[styles.tabLabel, focused && styles.tabLabelFocused]}>
+      <Text
+        style={[styles.tabLabel, focused && styles.tabLabelFocused]}
+        numberOfLines={1}
+      >
         {labelMap[label]}
       </Text>
     </View>
@@ -193,7 +196,7 @@ export default function AppNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 60,
+    height: 65,
     paddingBottom: 8,
     paddingTop: 8,
     backgroundColor: '#fff',
@@ -203,14 +206,15 @@ const styles = StyleSheet.create({
   tabIcon: {
     alignItems: 'center',
     justifyContent: 'center',
+    minWidth: 80,
   },
   tabIconText: {
     fontSize: 24,
   },
   tabLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
-    marginTop: 4,
+    marginTop: 2,
   },
   tabLabelFocused: {
     color: '#5B21B6',
