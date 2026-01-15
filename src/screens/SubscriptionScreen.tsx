@@ -308,7 +308,7 @@ export default function SubscriptionScreen({ navigation }: Props) {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Cancel anytime. No questions asked. Full refund within 7 days.
+            Cancel anytime. Your subscription will remain active until the end of your billing period and won't auto-renew.
           </Text>
         </View>
       </ScrollView>
