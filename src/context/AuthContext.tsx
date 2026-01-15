@@ -7,6 +7,7 @@ import {
   User,
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { revenueCatService } from '../services/revenueCatService';
 
 interface AuthContextType {
   user: User | null;
@@ -35,14 +36,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    // Identify user in RevenueCat
+    try {
+      await revenueCatService.identifyUser(userCredential.user.uid);
+    } catch (error) {
+      console.error('Failed to identify user in RevenueCat:', error);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    // Identify user in RevenueCat
+    try {
+      await revenueCatService.identifyUser(userCredential.user.uid);
+    } catch (error) {
+      console.error('Failed to identify user in RevenueCat:', error);
+    }
   };
 
   const logout = async () => {
+    // Logout from RevenueCat first
+    try {
+      await revenueCatService.logoutUser();
+    } catch (error) {
+      console.error('Failed to logout from RevenueCat:', error);
+    }
     await signOut(auth);
     setGuestMode(false);
   };
