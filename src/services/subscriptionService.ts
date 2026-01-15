@@ -59,11 +59,12 @@ export const subscriptionService = {
 
   /**
    * Cancel a user's subscription
+   * Note: Subscription remains active until endDate, just won't auto-renew
    */
   async cancelSubscription(userId: string): Promise<void> {
     const docRef = doc(db, 'subscriptions', userId);
     await updateDoc(docRef, {
-      status: 'canceled',
+      // Keep status as 'active' so user retains access until endDate
       autoRenew: false,
       updatedAt: Timestamp.fromDate(new Date()),
     });
