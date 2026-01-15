@@ -20,25 +20,28 @@ type Props = {
 };
 
 export default function ProgressScreen({ navigation }: Props) {
-  const { user } = useAuth();
+  const { user, guestMode } = useAuth();
   const [attempts, setAttempts] = useState<TestAttempt[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
+    // Only load attempts if user is logged in (not guest mode)
+    if (user && !guestMode) {
       loadAttempts();
     } else {
       setLoading(false);
+      setAttempts([]); // Clear any existing attempts
     }
-  }, [user]);
+  }, [user, guestMode]);
 
   // Refresh attempts when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      if (user) {
+      // Only load attempts if user is logged in (not guest mode)
+      if (user && !guestMode) {
         loadAttempts();
       }
-    }, [user])
+    }, [user, guestMode])
   );
 
   const loadAttempts = async () => {
@@ -59,12 +62,17 @@ export default function ProgressScreen({ navigation }: Props) {
     }
   };
 
-  if (!user) {
+  // Show login prompt for guests or non-authenticated users
+  if (!user || guestMode) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>👤</Text>
         <Text style={styles.emptyTitle}>Login Required</Text>
-        <Text style={styles.emptyText}>Please login to view your progress</Text>
+        <Text style={styles.emptyText}>
+          {guestMode
+            ? 'Create an account or login to track your progress and save your test results'
+            : 'Please login to view your progress'}
+        </Text>
         <TouchableOpacity
           style={styles.loginButton}
           onPress={() => navigation.navigate('Login')}
