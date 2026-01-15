@@ -27,7 +27,7 @@ export default function TestScreen({ navigation, route }: Props) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<{ [questionId: string]: number }>({});
   const [timeRemaining, setTimeRemaining] = useState(paper.duration * 60);
-  const handleSubmitRef = useRef<() => void>();
+  const handleSubmitRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     loadQuestions();
