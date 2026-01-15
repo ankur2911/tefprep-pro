@@ -16,6 +16,13 @@ import LoginScreen from '../screens/LoginScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
 import AdminScreen from '../screens/AdminScreen';
 
+// Admin Screens
+import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
+import ManagePapersScreen from '../screens/admin/ManagePapersScreen';
+import AddEditPaperScreen from '../screens/admin/AddEditPaperScreen';
+import ManageUsersScreen from '../screens/admin/ManageUsersScreen';
+import ManageQuestionsScreen from '../screens/admin/ManageQuestionsScreen';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -86,6 +93,31 @@ function ProfileStack() {
         name="Admin"
         component={AdminScreen}
         options={{ title: 'Admin Panel' }}
+      />
+      <Stack.Screen
+        name="AdminDashboard"
+        component={AdminDashboardScreen}
+        options={{ title: 'Admin Dashboard' }}
+      />
+      <Stack.Screen
+        name="ManagePapers"
+        component={ManagePapersScreen}
+        options={{ title: 'Manage Papers' }}
+      />
+      <Stack.Screen
+        name="AddEditPaper"
+        component={AddEditPaperScreen}
+        options={{ title: 'Add/Edit Paper' }}
+      />
+      <Stack.Screen
+        name="ManageUsers"
+        component={ManageUsersScreen}
+        options={{ title: 'User Management' }}
+      />
+      <Stack.Screen
+        name="ManageQuestions"
+        component={ManageQuestionsScreen}
+        options={{ title: 'Manage Questions' }}
       />
     </Stack.Navigator>
   );

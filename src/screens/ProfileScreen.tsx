@@ -123,9 +123,17 @@ export default function ProfileScreen({ navigation }: Props) {
 
           <TouchableOpacity
             style={styles.menuItem}
+            onPress={() => navigation.navigate('AdminDashboard')}
+          >
+            <Text style={styles.menuItemText}>🎛️ Admin Dashboard</Text>
+            <Text style={styles.menuItemArrow}>›</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
             onPress={() => navigation.navigate('Admin')}
           >
-            <Text style={styles.menuItemText}>🛠️ Admin Panel</Text>
+            <Text style={styles.menuItemText}>🛠️ Firebase Data Tools</Text>
             <Text style={styles.menuItemArrow}>›</Text>
           </TouchableOpacity>
         </View>

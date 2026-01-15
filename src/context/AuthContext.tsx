@@ -6,7 +6,8 @@ import {
   onAuthStateChanged,
   User,
 } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
+import { auth, db } from '../config/firebase';
 import { revenueCatService } from '../services/revenueCatService';
 
 interface AuthContextType {
@@ -26,9 +27,44 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const [guestMode, setGuestMode] = useState(false);
 
+  // Create or update user document in Firestore
+  const createUserDocument = async (user: User) => {
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        // Create new user document
+        await setDoc(userRef, {
+          email: user.email,
+          displayName: user.displayName || '',
+          testPremium: false,
+          isPremium: false,
+          createdAt: Timestamp.fromDate(new Date()),
+          lastLogin: Timestamp.fromDate(new Date()),
+        });
+        console.log('✅ Created user document in Firestore');
+      } else {
+        // Update last login time
+        await setDoc(userRef, {
+          lastLogin: Timestamp.fromDate(new Date()),
+        }, { merge: true });
+        console.log('✅ Updated user last login');
+      }
+    } catch (error) {
+      console.error('❌ Failed to create/update user document:', error);
+    }
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+
+      // Create user document if user is logged in
+      if (user) {
+        await createUserDocument(user);
+      }
+
       setLoading(false);
     });
 

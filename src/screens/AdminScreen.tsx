@@ -12,6 +12,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../utils/colors';
 import { uploadMockDataToFirebase, clearFirebaseData } from '../scripts/uploadMockData';
 import { testFirebaseRules, getCurrentFirebaseRulesInfo } from '../scripts/testFirebaseRules';
+import { syncCurrentUser, checkUserDocumentExists } from '../scripts/syncUsers';
 import { useAuth } from '../context/AuthContext';
 import { isAdmin } from '../utils/adminCheck';
 
@@ -24,6 +25,7 @@ export default function AdminScreen({ navigation }: Props) {
   const [uploading, setUploading] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [uploadResult, setUploadResult] = useState<{
     papersUploaded: number;
     questionsUploaded: number;
@@ -185,6 +187,43 @@ export default function AdminScreen({ navigation }: Props) {
     );
   };
 
+  const handleSyncCurrentUser = async () => {
+    if (!user) {
+      Alert.alert('Error', 'No user logged in');
+      return;
+    }
+
+    try {
+      setSyncing(true);
+
+      // Check if user document already exists
+      const exists = await checkUserDocumentExists(user.uid);
+
+      if (exists) {
+        Alert.alert(
+          'Already Synced',
+          `Your user document already exists in Firestore.\n\nEmail: ${user.email}\nUID: ${user.uid.substring(0, 12)}...`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      // Sync user
+      await syncCurrentUser(user.uid, user.email || '');
+
+      Alert.alert(
+        'Success!',
+        `Your account has been synced to Firestore.\n\nYou can now:\n• View your account in User Management\n• Toggle test premium for yourself\n• Access all admin features`,
+        [{ text: 'OK' }]
+      );
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      Alert.alert('Error', error?.message || 'Failed to sync user');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -196,9 +235,24 @@ export default function AdminScreen({ navigation }: Props) {
         <Text style={styles.sectionTitle}>Diagnostics</Text>
 
         <TouchableOpacity
+          style={[styles.diagnosticButton, syncing && styles.actionButtonDisabled]}
+          onPress={handleSyncCurrentUser}
+          disabled={uploading || clearing || testing || syncing}
+        >
+          {syncing ? (
+            <ActivityIndicator color={Colors.textInverse} />
+          ) : (
+            <>
+              <Text style={styles.actionButtonIcon}>👤</Text>
+              <Text style={styles.actionButtonText}>Sync My Account to Firestore</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.diagnosticButton, testing && styles.actionButtonDisabled]}
           onPress={handleTestRules}
-          disabled={uploading || clearing || testing}
+          disabled={uploading || clearing || testing || syncing}
         >
           {testing ? (
             <ActivityIndicator color={Colors.textInverse} />
@@ -213,7 +267,7 @@ export default function AdminScreen({ navigation }: Props) {
         <TouchableOpacity
           style={styles.infoButton}
           onPress={handleShowRules}
-          disabled={uploading || clearing || testing}
+          disabled={uploading || clearing || testing || syncing}
         >
           <Text style={styles.actionButtonIcon}>📋</Text>
           <Text style={styles.actionButtonText}>Show Correct Rules</Text>
@@ -285,16 +339,19 @@ export default function AdminScreen({ navigation }: Props) {
       <View style={styles.infoCard}>
         <Text style={styles.infoTitle}>ℹ️ How to Use</Text>
         <Text style={styles.infoText}>
-          1. First, tap "Test Firebase Rules" to check if your rules are configured correctly
+          1. First, tap "Sync My Account to Firestore" to create your user document (required for User Management)
         </Text>
         <Text style={styles.infoText}>
-          2. If the test fails, tap "Show Correct Rules" and update your Firebase console
+          2. Tap "Test Firebase Rules" to check if your rules are configured correctly
         </Text>
         <Text style={styles.infoText}>
-          3. Once rules pass, tap "Upload Mock Data to Firebase" (takes 2-3 minutes)
+          3. If the test fails, tap "Show Correct Rules" and update your Firebase console
         </Text>
         <Text style={styles.infoText}>
-          4. The app will automatically use Firebase data when available
+          4. Once rules pass, tap "Upload Mock Data to Firebase" (takes 2-3 minutes)
+        </Text>
+        <Text style={styles.infoText}>
+          5. The app will automatically use Firebase data when available
         </Text>
       </View>
     </ScrollView>
