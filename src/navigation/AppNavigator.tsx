@@ -192,6 +192,14 @@ export default function AppNavigator() {
               presentation: 'modal'
             }}
           />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal'
+            }}
+          />
         </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />

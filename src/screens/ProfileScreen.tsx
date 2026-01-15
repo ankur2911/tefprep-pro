@@ -18,7 +18,7 @@ type Props = {
 };
 
 export default function ProfileScreen({ navigation }: Props) {
-  const { user, logout } = useAuth();
+  const { user, logout, guestMode } = useAuth();
   const { subscription, hasActiveSubscription } = useSubscription();
 
   const handleLogout = () => {
@@ -38,10 +38,24 @@ export default function ProfileScreen({ navigation }: Props) {
     ]);
   };
 
-  if (!user) {
+  if (!user || guestMode) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.notLoggedIn}>Please log in to view your profile</Text>
+      <View style={styles.guestContainer}>
+        <Text style={styles.guestIcon}>👤</Text>
+        <Text style={styles.guestTitle}>
+          {guestMode ? 'Guest Mode' : 'Not Logged In'}
+        </Text>
+        <Text style={styles.guestText}>
+          {guestMode
+            ? 'Create an account or login to access your profile, track progress, and sync your data across devices'
+            : 'Please log in to view your profile'}
+        </Text>
+        <TouchableOpacity
+          style={styles.guestLoginButton}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Text style={styles.guestLoginButtonText}>Go to Login</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -295,5 +309,41 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 12,
     color: Colors.textSecondary,
+  },
+  guestContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: Colors.background,
+  },
+  guestIcon: {
+    fontSize: 80,
+    marginBottom: 20,
+  },
+  guestTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.textPrimary,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  guestText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 30,
+    lineHeight: 24,
+  },
+  guestLoginButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  guestLoginButtonText: {
+    color: Colors.textInverse,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
