@@ -302,13 +302,13 @@ const styles = StyleSheet.create({
   },
   userId: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: Colors.textDisabled,
     fontFamily: 'monospace',
     marginBottom: 2,
   },
   userDate: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: Colors.textDisabled,
   },
   actionContainer: {
     flexDirection: 'row',

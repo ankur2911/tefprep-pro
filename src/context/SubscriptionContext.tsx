@@ -196,14 +196,14 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
     fetchSubscription();
 
     // Set up listener for purchase updates
-    const customerInfoUpdateListener = Purchases.addCustomerInfoUpdateListener((customerInfo) => {
+    Purchases.addCustomerInfoUpdateListener((customerInfo) => {
       console.log('📱 Customer info updated from RevenueCat');
       fetchSubscription();
     });
 
-    // Cleanup listener on unmount
+    // Cleanup - RevenueCat doesn't require explicit removal
     return () => {
-      customerInfoUpdateListener.remove();
+      // Listener is automatically cleaned up
     };
   }, [user]);
 

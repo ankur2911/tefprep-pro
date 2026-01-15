@@ -75,7 +75,7 @@ class RevenueCatService {
    */
   async logoutUser(): Promise<void> {
     try {
-      const { customerInfo } = await Purchases.logOut();
+      await Purchases.logOut();
       console.log('✅ User logged out from RevenueCat');
     } catch (error) {
       console.error('❌ Failed to logout user:', error);
@@ -184,7 +184,7 @@ class RevenueCatService {
    */
   async restorePurchases(): Promise<CustomerInfo> {
     try {
-      const { customerInfo } = await Purchases.restorePurchases();
+      const customerInfo = await Purchases.restorePurchases();
       console.log('✅ Purchases restored successfully');
       return customerInfo;
     } catch (error) {
@@ -225,7 +225,7 @@ class RevenueCatService {
         productIdentifier: entitlement.productIdentifier,
         expirationDate: entitlement.expirationDate,
         willRenew: entitlement.willRenew,
-        isInGracePeriod: entitlement.isInGracePeriod || false,
+        isInGracePeriod: false,
       };
     } catch (error) {
       console.error('❌ Failed to get subscription details:', error);
