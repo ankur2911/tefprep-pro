@@ -46,8 +46,7 @@
       }
     },
     "plugins": [
-      "expo-build-properties",
-      "react-native-purchases"
+      "expo-build-properties"
     ]
   }
 }

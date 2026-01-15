@@ -52,7 +52,7 @@ export default function ProfileScreen({ navigation }: Props) {
         </Text>
         <TouchableOpacity
           style={styles.guestLoginButton}
-          onPress={() => navigation.navigate('Login')}
+          onPress={() => navigation.getParent()?.navigate('Login' as never)}
         >
           <Text style={styles.guestLoginButtonText}>Go to Login</Text>
         </TouchableOpacity>
