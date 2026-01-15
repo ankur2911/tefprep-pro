@@ -1,24 +1,74 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from './AuthContext';
-import { Subscription } from '../types';
+import { revenueCatService } from '../services/revenueCatService';
+import Purchases, { CustomerInfo, PurchasesOfferings } from 'react-native-purchases';
+
+interface SubscriptionDetails {
+  hasActiveSubscription: boolean;
+  productIdentifier: string | null;
+  expirationDate: string | null;
+  willRenew: boolean;
+  plan: 'monthly' | 'yearly' | null;
+}
 
 interface SubscriptionContextType {
-  subscription: Subscription | null;
+  subscription: SubscriptionDetails | null;
   loading: boolean;
   hasActiveSubscription: boolean;
   canAccessPaper: (isPremium: boolean) => boolean;
   refreshSubscription: () => Promise<void>;
+  offerings: PurchasesOfferings | null;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
 export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
 
+  // Sync RevenueCat data to Firestore for backup and analytics
+  const syncToFirestore = async (customerInfo: CustomerInfo) => {
+    if (!user) return;
+
+    try {
+      const details = await revenueCatService.getSubscriptionDetails();
+      if (!details || !details.hasActiveSubscription) return;
+
+      const now = new Date();
+      const expirationDate = details.expirationDate
+        ? new Date(details.expirationDate)
+        : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // Default 30 days
+
+      // Determine plan from product identifier
+      let plan: 'monthly' | 'yearly' = 'monthly';
+      if (details.productIdentifier?.includes('yearly')) {
+        plan = 'yearly';
+      }
+
+      const subscriptionData = {
+        userId: user.uid,
+        status: 'active',
+        plan,
+        startDate: Timestamp.fromDate(now),
+        endDate: Timestamp.fromDate(expirationDate),
+        autoRenew: details.willRenew,
+        productIdentifier: details.productIdentifier,
+        provider: 'revenuecat',
+        lastSynced: Timestamp.fromDate(now),
+      };
+
+      await setDoc(doc(db, 'subscriptions', user.uid), subscriptionData);
+      console.log('✅ Synced subscription to Firestore');
+    } catch (error) {
+      console.error('❌ Failed to sync to Firestore:', error);
+    }
+  };
+
+  // Fetch subscription from RevenueCat
   const fetchSubscription = async () => {
     if (!user) {
       setSubscription(null);
@@ -27,43 +77,88 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
     }
 
     try {
-      const subDoc = await getDoc(doc(db, 'subscriptions', user.uid));
-      if (subDoc.exists()) {
-        const data = subDoc.data();
+      const details = await revenueCatService.getSubscriptionDetails();
 
-        // Validate required fields
-        if (!data.startDate || !data.endDate || !data.startDate.toDate || !data.endDate.toDate) {
-          console.error('Subscription document missing required date fields');
-          setSubscription(null);
-          return;
-        }
+      if (details) {
+        const plan = details.productIdentifier?.includes('yearly')
+          ? 'yearly'
+          : details.productIdentifier?.includes('monthly')
+            ? 'monthly'
+            : null;
 
         setSubscription({
-          id: subDoc.id,
-          userId: user.uid,
-          status: data.status || 'inactive',
-          plan: data.plan || 'monthly',
-          startDate: data.startDate.toDate(),
-          endDate: data.endDate.toDate(),
-          autoRenew: data.autoRenew ?? true,
+          hasActiveSubscription: details.hasActiveSubscription,
+          productIdentifier: details.productIdentifier,
+          expirationDate: details.expirationDate,
+          willRenew: details.willRenew,
+          plan,
         });
+
+        // Sync to Firestore if active
+        if (details.hasActiveSubscription) {
+          const customerInfo = await revenueCatService.getCustomerInfo();
+          if (customerInfo) {
+            await syncToFirestore(customerInfo);
+          }
+        }
       } else {
         setSubscription(null);
       }
     } catch (error) {
-      console.error('Error fetching subscription:', error);
+      console.error('❌ Error fetching subscription:', error);
       setSubscription(null);
     } finally {
       setLoading(false);
     }
   };
 
+  // Initialize RevenueCat and load offerings
   useEffect(() => {
-    fetchSubscription();
+    const initializeRevenueCat = async () => {
+      try {
+        // Initialize with user ID if available
+        await revenueCatService.initialize(user?.uid);
+
+        // Identify user if logged in
+        if (user) {
+          await revenueCatService.identifyUser(user.uid);
+        }
+
+        // Load offerings
+        const offers = await revenueCatService.getOfferings();
+        setOfferings(offers);
+      } catch (error) {
+        console.error('❌ Failed to initialize RevenueCat:', error);
+      }
+    };
+
+    initializeRevenueCat();
   }, [user]);
 
-  const hasActiveSubscription = subscription?.status === 'active' &&
-    subscription.endDate > new Date();
+  // Listen to subscription updates
+  useEffect(() => {
+    if (!user) {
+      setSubscription(null);
+      setLoading(false);
+      return;
+    }
+
+    // Initial fetch
+    fetchSubscription();
+
+    // Set up listener for purchase updates
+    const customerInfoUpdateListener = Purchases.addCustomerInfoUpdateListener((customerInfo) => {
+      console.log('📱 Customer info updated from RevenueCat');
+      fetchSubscription();
+    });
+
+    // Cleanup listener on unmount
+    return () => {
+      customerInfoUpdateListener.remove();
+    };
+  }, [user]);
+
+  const hasActiveSubscription = subscription?.hasActiveSubscription ?? false;
 
   const canAccessPaper = (isPremium: boolean) => {
     if (!isPremium) return true;
@@ -82,6 +177,7 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
         hasActiveSubscription,
         canAccessPaper,
         refreshSubscription,
+        offerings,
       }}
     >
       {children}

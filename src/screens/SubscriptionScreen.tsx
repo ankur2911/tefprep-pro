@@ -7,78 +7,89 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Platform,
+  Linking,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../utils/colors';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useAuth } from '../context/AuthContext';
-import { subscriptionService } from '../services/subscriptionService';
+import { revenueCatService } from '../services/revenueCatService';
+import { PurchasesPackage } from 'react-native-purchases';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
 };
 
 export default function SubscriptionScreen({ navigation }: Props) {
-  const { subscription, hasActiveSubscription, refreshSubscription } = useSubscription();
+  const { subscription, hasActiveSubscription, refreshSubscription, offerings } = useSubscription();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [packages, setPackages] = useState<PurchasesPackage[]>([]);
 
-  // Refresh subscription data when screen comes into focus
+  // Refresh subscription data and load packages when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       refreshSubscription();
-    }, [refreshSubscription])
+      loadPackages();
+    }, [offerings])
   );
 
-  const plans = [
-    {
-      id: 'monthly',
-      name: 'Monthly Plan',
-      price: '$9.99',
-      period: '/month',
-      features: [
-        'Access to all premium papers',
-        'Unlimited test attempts',
-        'Detailed performance analytics',
-        'New content added regularly',
-        'Cancel anytime',
-      ],
-      popular: false,
-    },
-    {
-      id: 'yearly',
-      name: 'Yearly Plan',
-      price: '$99',
-      period: '/year',
-      savings: 'Save $20/year',
-      features: [
-        'Everything in Monthly Plan',
-        'Best value - 2 months free',
-        'Priority support',
-        'Early access to new features',
-        'Exclusive study materials',
-      ],
-      popular: true,
-    },
-  ];
+  const loadPackages = () => {
+    if (!offerings?.current) {
+      console.log('No offerings available yet');
+      return;
+    }
 
-  const handleSubscribe = async (planId: 'monthly' | 'yearly') => {
+    const availablePackages = offerings.current.availablePackages;
+    setPackages(availablePackages);
+    console.log('Loaded', availablePackages.length, 'packages from RevenueCat');
+  };
+
+  const getPackageDetails = (pkg: PurchasesPackage) => {
+    const isMonthly = pkg.identifier === 'monthly' || pkg.product.identifier.includes('monthly');
+
+    return {
+      id: pkg.identifier,
+      name: isMonthly ? 'Monthly Plan' : 'Yearly Plan',
+      price: pkg.product.priceString,
+      period: isMonthly ? '/month' : '/year',
+      savings: isMonthly ? null : 'Save $20/year',
+      features: isMonthly
+        ? [
+            'Access to all premium papers',
+            'Unlimited test attempts',
+            'Detailed performance analytics',
+            'New content added regularly',
+            'Cancel anytime',
+          ]
+        : [
+            'Everything in Monthly Plan',
+            'Best value - 2 months free',
+            'Priority support',
+            'Early access to new features',
+            'Exclusive study materials',
+          ],
+      popular: !isMonthly,
+      package: pkg,
+    };
+  };
+
+  const handlePurchase = async (pkg: PurchasesPackage) => {
     if (!user) {
       Alert.alert('Error', 'Please login to subscribe');
       return;
     }
 
-    const planName = planId === 'monthly' ? 'Monthly' : 'Yearly';
-    const planPrice = planId === 'monthly' ? '$9.99/month' : '$99/year';
+    const details = getPackageDetails(pkg);
 
     Alert.alert(
       'Confirm Subscription',
-      `Subscribe to ${planName} Plan for ${planPrice}?\n\n` +
+      `Subscribe to ${details.name} for ${details.price}${details.period}?\n\n` +
         (hasActiveSubscription
           ? 'This will switch your current plan.'
-          : 'You will get instant access to all premium papers.') +
-        '\n\n💳 In production, this would process a real payment through Stripe.',
+          : 'You will get instant access to all premium papers.'),
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -86,30 +97,14 @@ export default function SubscriptionScreen({ navigation }: Props) {
           onPress: async () => {
             setLoading(true);
             try {
-              // Refresh subscription data first
-              await refreshSubscription();
+              const result = await revenueCatService.purchasePackage(pkg);
 
-              if (hasActiveSubscription) {
-                await subscriptionService.switchPlan(user.uid, planId);
-                Alert.alert(
-                  'Success! 🎉',
-                  `Your plan has been switched to ${planName}.\n\nYou now have access to all premium papers!`,
-                  [
-                    {
-                      text: 'Start Learning',
-                      onPress: () => {
-                        if (navigation.canGoBack()) {
-                          navigation.goBack();
-                        }
-                      },
-                    },
-                  ]
-                );
-              } else {
-                await subscriptionService.createSubscription(user.uid, planId);
+              if (result.success) {
+                await refreshSubscription();
+
                 Alert.alert(
                   'Welcome to Premium! 🎉',
-                  `You are now subscribed to the ${planName} plan.\n\nAll premium papers are now unlocked!`,
+                  `You are now subscribed to the ${details.name}.\n\nAll premium papers are now unlocked!`,
                   [
                     {
                       text: 'Start Learning',
@@ -123,7 +118,25 @@ export default function SubscriptionScreen({ navigation }: Props) {
                 );
               }
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to subscribe');
+              // Handle specific errors
+              if (error.message === 'CANCELLED') {
+                // User cancelled, do nothing
+                return;
+              }
+
+              if (error.message === 'PAYMENT_PENDING') {
+                Alert.alert(
+                  'Payment Pending',
+                  'Your payment is being processed. You will get access once the payment is confirmed.'
+                );
+                return;
+              }
+
+              // Generic error
+              Alert.alert(
+                'Purchase Failed',
+                error.message || 'Failed to complete purchase. Please try again.'
+              );
             } finally {
               setLoading(false);
             }
@@ -136,56 +149,54 @@ export default function SubscriptionScreen({ navigation }: Props) {
   const handleManageSubscription = () => {
     if (!user) return;
 
+    const platformName = Platform.OS === 'ios' ? 'App Store' : 'Google Play';
+
     Alert.alert(
       'Manage Subscription',
-      'What would you like to do?',
+      `To manage or cancel your subscription, please visit your ${platformName} account settings.\n\nWould you like to open ${platformName} now?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Cancel Subscription',
-          style: 'destructive',
-          onPress: async () => {
-            Alert.alert(
-              'Confirm Cancellation',
-              'Are you sure you want to cancel your subscription?\n\nYou will lose access to premium papers at the end of your billing period.',
-              [
-                { text: 'Keep Subscription', style: 'cancel' },
-                {
-                  text: 'Yes, Cancel',
-                  style: 'destructive',
-                  onPress: async () => {
-                    setLoading(true);
-                    try {
-                      await subscriptionService.cancelSubscription(user.uid);
-                      // Refresh subscription data to show updated status
-                      await refreshSubscription();
-                      Alert.alert(
-                        'Subscription Cancelled',
-                        'Your subscription has been cancelled. You can still access premium content until the end of your billing period.',
-                        [
-                          {
-                            text: 'OK',
-                            onPress: () => {
-                              if (navigation.canGoBack()) {
-                                navigation.goBack();
-                              }
-                            },
-                          },
-                        ]
-                      );
-                    } catch (error: any) {
-                      Alert.alert('Error', error.message || 'Failed to cancel subscription');
-                    } finally {
-                      setLoading(false);
-                    }
-                  },
-                },
-              ]
-            );
+          text: `Open ${platformName}`,
+          onPress: () => {
+            if (Platform.OS === 'ios') {
+              Linking.openURL('https://apps.apple.com/account/subscriptions');
+            } else {
+              Linking.openURL('https://play.google.com/store/account/subscriptions');
+            }
           },
         },
       ]
     );
+  };
+
+  const handleRestorePurchases = async () => {
+    setLoading(true);
+    try {
+      const customerInfo = await revenueCatService.restorePurchases();
+      await refreshSubscription();
+
+      const hasActiveEntitlement = customerInfo.entitlements.active['premium_access'] !== undefined;
+
+      if (hasActiveEntitlement) {
+        Alert.alert(
+          'Success! 🎉',
+          'Your purchases have been restored successfully!\n\nYou now have access to all premium content.'
+        );
+      } else {
+        Alert.alert(
+          'No Purchases Found',
+          'No active subscriptions were found to restore.\n\nIf you believe this is an error, please contact support.'
+        );
+      }
+    } catch (error: any) {
+      Alert.alert(
+        'Restore Failed',
+        'Failed to restore purchases. Please try again or contact support if the problem persists.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -203,12 +214,14 @@ export default function SubscriptionScreen({ navigation }: Props) {
             <Text style={styles.currentPlanBadge}>✓ Active</Text>
             <Text style={styles.currentPlanTitle}>Current Plan</Text>
             <Text style={styles.currentPlanName}>
-              {subscription.plan === 'monthly' ? 'Monthly' : 'Yearly'} Subscription
+              {subscription.plan === 'monthly' ? 'Monthly' : subscription.plan === 'yearly' ? 'Yearly' : 'Premium'} Subscription
             </Text>
-            <Text style={styles.currentPlanExpiry}>
-              {subscription.autoRenew ? 'Renews' : 'Expires'} on{' '}
-              {subscription.endDate.toLocaleDateString()}
-            </Text>
+            {subscription.expirationDate && (
+              <Text style={styles.currentPlanExpiry}>
+                {subscription.willRenew ? 'Renews' : 'Expires'} on{' '}
+                {new Date(subscription.expirationDate).toLocaleDateString()}
+              </Text>
+            )}
             <TouchableOpacity
               style={styles.manageButton}
               onPress={handleManageSubscription}
@@ -219,57 +232,68 @@ export default function SubscriptionScreen({ navigation }: Props) {
         )}
 
         <View style={styles.plansContainer}>
-          {plans.map((plan) => (
-            <View
-              key={plan.id}
-              style={[styles.planCard, plan.popular && styles.popularPlan]}
-            >
-              {plan.popular && (
-                <View style={styles.popularBadge}>
-                  <Text style={styles.popularBadgeText}>⭐ Most Popular</Text>
-                </View>
-              )}
-
-              <Text style={styles.planName}>{plan.name}</Text>
-
-              <View style={styles.priceContainer}>
-                <Text style={styles.price}>{plan.price}</Text>
-                <Text style={styles.period}>{plan.period}</Text>
-              </View>
-
-              {plan.savings && (
-                <View style={styles.savingsBadge}>
-                  <Text style={styles.savingsText}>{plan.savings}</Text>
-                </View>
-              )}
-
-              <View style={styles.featuresContainer}>
-                {plan.features.map((feature, index) => (
-                  <View key={index} style={styles.featureRow}>
-                    <Text style={styles.checkmark}>✓</Text>
-                    <Text style={styles.featureText}>{feature}</Text>
-                  </View>
-                ))}
-              </View>
-
-              <TouchableOpacity
-                style={[
-                  styles.subscribeButton,
-                  plan.popular && styles.popularSubscribeButton,
-                ]}
-                onPress={() => handleSubscribe(plan.id)}
-              >
-                <Text
-                  style={[
-                    styles.subscribeButtonText,
-                    plan.popular && styles.popularSubscribeButtonText,
-                  ]}
+          {packages.length > 0 ? (
+            packages.map((pkg) => {
+              const plan = getPackageDetails(pkg);
+              return (
+                <View
+                  key={plan.id}
+                  style={[styles.planCard, plan.popular && styles.popularPlan]}
                 >
-                  {hasActiveSubscription ? 'Switch Plan' : 'Subscribe Now'}
-                </Text>
-              </TouchableOpacity>
+                  {plan.popular && (
+                    <View style={styles.popularBadge}>
+                      <Text style={styles.popularBadgeText}>⭐ Most Popular</Text>
+                    </View>
+                  )}
+
+                  <Text style={styles.planName}>{plan.name}</Text>
+
+                  <View style={styles.priceContainer}>
+                    <Text style={styles.price}>{plan.price}</Text>
+                    <Text style={styles.period}>{plan.period}</Text>
+                  </View>
+
+                  {plan.savings && (
+                    <View style={styles.savingsBadge}>
+                      <Text style={styles.savingsText}>{plan.savings}</Text>
+                    </View>
+                  )}
+
+                  <View style={styles.featuresContainer}>
+                    {plan.features.map((feature, index) => (
+                      <View key={index} style={styles.featureRow}>
+                        <Text style={styles.checkmark}>✓</Text>
+                        <Text style={styles.featureText}>{feature}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.subscribeButton,
+                      plan.popular && styles.popularSubscribeButton,
+                    ]}
+                    onPress={() => handlePurchase(plan.package)}
+                    disabled={loading}
+                  >
+                    <Text
+                      style={[
+                        styles.subscribeButtonText,
+                        plan.popular && styles.popularSubscribeButtonText,
+                      ]}
+                    >
+                      {hasActiveSubscription ? 'Switch Plan' : 'Subscribe Now'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })
+          ) : (
+            <View style={styles.loadingPackages}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+              <Text style={styles.loadingPackagesText}>Loading plans...</Text>
             </View>
-          ))}
+          )}
         </View>
 
         <View style={styles.benefitsSection}>
@@ -306,9 +330,19 @@ export default function SubscriptionScreen({ navigation }: Props) {
           </View>
         </View>
 
+        {/* Restore Purchases Button (Required for iOS) */}
+        <TouchableOpacity
+          style={styles.restoreButton}
+          onPress={handleRestorePurchases}
+          disabled={loading}
+        >
+          <Text style={styles.restoreButtonText}>Restore Purchases</Text>
+        </TouchableOpacity>
+
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Cancel anytime. Your subscription will remain active until the end of your billing period and won't auto-renew.
+            Subscriptions will auto-renew unless cancelled at least 24 hours before the end of the current period.
+            Manage your subscription in your {Platform.OS === 'ios' ? 'App Store' : 'Google Play'} account settings.
           </Text>
         </View>
       </ScrollView>
@@ -395,6 +429,15 @@ const styles = StyleSheet.create({
   plansContainer: {
     padding: 16,
     gap: 16,
+  },
+  loadingPackages: {
+    padding: 40,
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingPackagesText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
   },
   planCard: {
     backgroundColor: Colors.surface,
@@ -530,6 +573,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
     lineHeight: 20,
+  },
+  restoreButton: {
+    backgroundColor: 'transparent',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  restoreButtonText: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
   footer: {
     padding: 24,
