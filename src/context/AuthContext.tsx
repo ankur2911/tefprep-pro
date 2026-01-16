@@ -74,8 +74,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(user);
       setLoading(false);
 
-      // Create user document if user is logged in (don't await - do it in background)
+      // Clear guest mode when user signs in
       if (user) {
+        setGuestMode(false);
+        console.log('✅ Clearing guest mode - user signed in');
+
+        // Create user document (don't await - do it in background)
         createUserDocument(user).catch(err => {
           console.warn('⚠️ Could not create user document - continuing anyway:', err);
         });
@@ -110,14 +114,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = async () => {
+    console.log('🔵 Starting logout...');
+
     // Logout from RevenueCat first
     try {
       await revenueCatService.logoutUser();
+      console.log('✅ Logged out from RevenueCat');
     } catch (error) {
       console.error('Failed to logout from RevenueCat:', error);
     }
+
+    // Sign out from Google if currently signed in
+    try {
+      const isSignedIn = await GoogleSignin.isSignedIn();
+      if (isSignedIn) {
+        await GoogleSignin.signOut();
+        console.log('✅ Signed out from Google');
+      }
+    } catch (error) {
+      console.error('Failed to sign out from Google:', error);
+    }
+
+    // Sign out from Firebase
     await signOut(auth);
+    console.log('✅ Signed out from Firebase');
+
+    // Clear guest mode
     setGuestMode(false);
+    console.log('✅ Guest mode cleared');
   };
 
   const continueAsGuest = () => {

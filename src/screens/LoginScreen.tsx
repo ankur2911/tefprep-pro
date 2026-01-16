@@ -65,18 +65,14 @@ export default function LoginScreen({ navigation }: Props) {
         console.log('📧 Signing in with email:', email);
         await signIn(email, password);
         console.log('✅ Sign in successful!');
+        // Navigation will happen automatically via AppNavigator when auth state changes
       } else {
         console.log('📧 Signing up with email:', email);
         await signUp(email, password, firstName.trim(), lastName.trim());
         console.log('✅ Sign up successful!');
         Alert.alert('Success', 'Account created successfully!');
+        // Navigation will happen automatically via AppNavigator when auth state changes
       }
-
-      // Navigate to Main screen after successful auth
-      setTimeout(() => {
-        console.log('🔵 Navigating to Main screen...');
-        navigation.navigate('Main' as never);
-      }, 100);
     } catch (error: any) {
       console.error('❌ Authentication error:', error);
       Alert.alert('Error', error.message || 'Authentication failed');
@@ -90,12 +86,7 @@ export default function LoginScreen({ navigation }: Props) {
     console.log('🔵 Guest mode button clicked!');
     continueAsGuest();
     console.log('✅ Guest mode activated');
-
-    // Use setTimeout to ensure state update completes before navigation
-    setTimeout(() => {
-      console.log('🔵 Navigating to Main screen...');
-      navigation.navigate('Main' as never);
-    }, 100);
+    // Navigation will happen automatically via AppNavigator when guestMode changes to true
   };
 
   const handleGoogleSignIn = async () => {
@@ -104,12 +95,7 @@ export default function LoginScreen({ navigation }: Props) {
     try {
       await signInWithGoogle();
       console.log('✅ Google Sign-In successful!');
-
-      // Navigate to Main screen
-      setTimeout(() => {
-        console.log('🔵 Navigating to Main screen...');
-        navigation.navigate('Main' as never);
-      }, 100);
+      // Navigation will happen automatically via AppNavigator when auth state changes
     } catch (error: any) {
       console.error('❌ Google Sign-In error:', error);
       if (error.code === '12501') {
@@ -129,12 +115,7 @@ export default function LoginScreen({ navigation }: Props) {
     try {
       await signInWithApple();
       console.log('✅ Apple Sign-In successful!');
-
-      // Navigate to Main screen
-      setTimeout(() => {
-        console.log('🔵 Navigating to Main screen...');
-        navigation.navigate('Main' as never);
-      }, 100);
+      // Navigation will happen automatically via AppNavigator when auth state changes
     } catch (error: any) {
       console.error('❌ Apple Sign-In error:', error);
       if (error.code !== '1001') {
