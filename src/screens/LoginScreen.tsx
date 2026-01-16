@@ -28,17 +28,6 @@ export default function LoginScreen({ navigation }: Props) {
   const [ssoLoading, setSsoLoading] = useState(false);
   const [authSuccess, setAuthSuccess] = useState(false);
 
-  // Navigate away when user is authenticated
-  React.useEffect(() => {
-    if (user) {
-      console.log('✅ User authenticated - navigating to Main');
-      // Check if we can go back (means we're in a modal)
-      if (navigation.canGoBack()) {
-        navigation.goBack();
-      }
-    }
-  }, [user, navigation]);
-
   // Reset auth success flag when component unmounts
   React.useEffect(() => {
     return () => {

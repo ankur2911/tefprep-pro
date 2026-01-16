@@ -326,8 +326,22 @@ function MainTabs() {
 // Root Navigator with Auth Check
 export default function AppNavigator() {
   const { user, loading, guestMode } = useAuth();
+  const navigationRef = React.useRef<any>(null);
 
   console.log('🔵 AppNavigator render - user:', user?.email || 'null', 'loading:', loading, 'guestMode:', guestMode);
+
+  // Navigate to Main when user becomes authenticated
+  React.useEffect(() => {
+    if ((user || guestMode) && navigationRef.current) {
+      console.log('🔵 User authenticated - resetting navigation to Main');
+      setTimeout(() => {
+        navigationRef.current?.reset({
+          index: 0,
+          routes: [{ name: 'Main' }],
+        });
+      }, 100);
+    }
+  }, [user, guestMode]);
 
   if (loading) {
     return (
@@ -339,7 +353,10 @@ export default function AppNavigator() {
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      ref={navigationRef}
+      screenOptions={{ headerShown: false }}
+    >
       {user || guestMode ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} />
