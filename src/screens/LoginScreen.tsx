@@ -28,15 +28,25 @@ export default function LoginScreen({ navigation }: Props) {
   const [ssoLoading, setSsoLoading] = useState(false);
   const [authSuccess, setAuthSuccess] = useState(false);
 
-  // Reset auth success flag when component unmounts or user changes
+  // Navigate away when user is authenticated
   React.useEffect(() => {
-    if (user && authSuccess) {
-      console.log('✅ User authenticated - LoginScreen should unmount soon');
+    if (user) {
+      console.log('✅ User authenticated - navigating to Main');
+      // Check if we can go back (means we're in a modal)
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
     }
+  }, [user, navigation]);
+
+  // Reset auth success flag when component unmounts
+  React.useEffect(() => {
     return () => {
       setAuthSuccess(false);
+      setSsoLoading(false);
+      setLoading(false);
     };
-  }, [user, authSuccess]);
+  }, []);
 
   const handleSubmit = async () => {
     console.log('🔵 Login button clicked!');
@@ -84,12 +94,14 @@ export default function LoginScreen({ navigation }: Props) {
         setAuthSuccess(true);
         Alert.alert('Success', 'Account created successfully!');
       }
+      // Keep loading state briefly, then navigation will happen automatically
+      setTimeout(() => {
+        setLoading(false);
+      }, 500);
     } catch (error: any) {
       console.error('❌ Authentication error:', error);
       Alert.alert('Error', error.message || 'Authentication failed');
-    } finally {
       setLoading(false);
-      console.log('🔵 Login attempt completed');
     }
   };
 
@@ -113,6 +125,10 @@ export default function LoginScreen({ navigation }: Props) {
       await signInWithGoogle();
       console.log('✅ Google Sign-In successful!');
       setAuthSuccess(true);
+      // Keep loading state for a moment to prevent interactions, then clear
+      setTimeout(() => {
+        setSsoLoading(false);
+      }, 500);
     } catch (error: any) {
       console.error('❌ Google Sign-In error:', error);
       if (error.code === '12501') {
@@ -123,7 +139,6 @@ export default function LoginScreen({ navigation }: Props) {
       }
       setSsoLoading(false);
     }
-    // Keep ssoLoading true to prevent any other interactions
   };
 
   const handleAppleSignIn = async () => {
@@ -133,6 +148,10 @@ export default function LoginScreen({ navigation }: Props) {
       await signInWithApple();
       console.log('✅ Apple Sign-In successful!');
       setAuthSuccess(true);
+      // Keep loading state for a moment to prevent interactions, then clear
+      setTimeout(() => {
+        setSsoLoading(false);
+      }, 500);
     } catch (error: any) {
       console.error('❌ Apple Sign-In error:', error);
       if (error.code !== '1001') {
@@ -141,7 +160,6 @@ export default function LoginScreen({ navigation }: Props) {
       }
       setSsoLoading(false);
     }
-    // Keep ssoLoading true to prevent any other interactions
   };
 
   return (
