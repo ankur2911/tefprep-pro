@@ -13,7 +13,6 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { doc, getDoc } from 'firebase/firestore';
-import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../config/firebase';
 import { Colors } from '../utils/colors';
@@ -79,63 +78,7 @@ export default function SettingsScreen({ navigation }: Props) {
 
   const handleChangePassword = () => {
     if (!user) return;
-
-    Alert.prompt(
-      'Change Password',
-      'Enter your current password:',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Next',
-          onPress: (currentPassword) => {
-            if (!currentPassword) {
-              Alert.alert('Error', 'Please enter your current password');
-              return;
-            }
-
-            Alert.prompt(
-              'Change Password',
-              'Enter your new password (min 6 characters):',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Change',
-                  onPress: async (newPassword) => {
-                    if (!newPassword || newPassword.length < 6) {
-                      Alert.alert('Error', 'Password must be at least 6 characters long');
-                      return;
-                    }
-
-                    try {
-                      // Re-authenticate user
-                      const credential = EmailAuthProvider.credential(
-                        user.email!,
-                        currentPassword
-                      );
-                      await reauthenticateWithCredential(user, credential);
-
-                      // Update password
-                      await updatePassword(user, newPassword);
-
-                      Alert.alert('Success', 'Your password has been updated successfully');
-                    } catch (error: any) {
-                      console.error('Error changing password:', error);
-                      if (error.code === 'auth/wrong-password') {
-                        Alert.alert('Error', 'Current password is incorrect');
-                      } else {
-                        Alert.alert('Error', 'Failed to change password. Please try again.');
-                      }
-                    }
-                  },
-                },
-              ],
-              'secure-text'
-            );
-          },
-        },
-      ],
-      'secure-text'
-    );
+    navigation.navigate('ChangePassword');
   };
 
   const handleClearCache = () => {

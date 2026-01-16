@@ -17,6 +17,8 @@ import SettingsScreen from '../screens/SettingsScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
 import AdminScreen from '../screens/AdminScreen';
+import ChangePasswordScreen from '../screens/ChangePasswordScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 
 // Admin Screens
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
@@ -95,6 +97,11 @@ function ProfileStack() {
         name="Settings"
         component={SettingsScreen}
         options={{ title: 'Settings' }}
+      />
+      <Stack.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
+        options={{ title: 'Change Password' }}
       />
       <Stack.Screen
         name="Admin"
@@ -247,9 +254,28 @@ export default function AppNavigator() {
               presentation: 'modal'
             }}
           />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+            options={{
+              headerShown: true,
+              title: 'Reset Password',
+              presentation: 'modal'
+            }}
+          />
         </>
       ) : (
-        <Stack.Screen name="Login" component={LoginScreen} />
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+            options={{
+              headerShown: true,
+              title: 'Reset Password'
+            }}
+          />
+        </>
       )}
     </Stack.Navigator>
   );
