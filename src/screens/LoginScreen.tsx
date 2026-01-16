@@ -18,7 +18,7 @@ type Props = {
 };
 
 export default function LoginScreen({ navigation }: Props) {
-  const { signIn, signUp, signInWithGoogle, signInWithApple, continueAsGuest } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithApple, continueAsGuest, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -26,6 +26,17 @@ export default function LoginScreen({ navigation }: Props) {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [ssoLoading, setSsoLoading] = useState(false);
+  const [authSuccess, setAuthSuccess] = useState(false);
+
+  // Reset auth success flag when component unmounts or user changes
+  React.useEffect(() => {
+    if (user && authSuccess) {
+      console.log('✅ User authenticated - LoginScreen should unmount soon');
+    }
+    return () => {
+      setAuthSuccess(false);
+    };
+  }, [user, authSuccess]);
 
   const handleSubmit = async () => {
     console.log('🔵 Login button clicked!');
@@ -65,13 +76,13 @@ export default function LoginScreen({ navigation }: Props) {
         console.log('📧 Signing in with email:', email);
         await signIn(email, password);
         console.log('✅ Sign in successful!');
-        // Navigation will happen automatically via AppNavigator when auth state changes
+        setAuthSuccess(true);
       } else {
         console.log('📧 Signing up with email:', email);
         await signUp(email, password, firstName.trim(), lastName.trim());
         console.log('✅ Sign up successful!');
+        setAuthSuccess(true);
         Alert.alert('Success', 'Account created successfully!');
-        // Navigation will happen automatically via AppNavigator when auth state changes
       }
     } catch (error: any) {
       console.error('❌ Authentication error:', error);
@@ -84,9 +95,15 @@ export default function LoginScreen({ navigation }: Props) {
 
   const handleGuestMode = () => {
     console.log('🔵 Guest mode button clicked!');
+
+    // Prevent guest mode if authentication is in progress or already successful
+    if (loading || ssoLoading || authSuccess || user) {
+      console.log('⚠️ Preventing guest mode - auth in progress or user already authenticated');
+      return;
+    }
+
     continueAsGuest();
     console.log('✅ Guest mode activated');
-    // Navigation will happen automatically via AppNavigator when guestMode changes to true
   };
 
   const handleGoogleSignIn = async () => {
@@ -95,7 +112,7 @@ export default function LoginScreen({ navigation }: Props) {
     try {
       await signInWithGoogle();
       console.log('✅ Google Sign-In successful!');
-      // Navigation will happen automatically via AppNavigator when auth state changes
+      setAuthSuccess(true);
     } catch (error: any) {
       console.error('❌ Google Sign-In error:', error);
       if (error.code === '12501') {
@@ -104,9 +121,9 @@ export default function LoginScreen({ navigation }: Props) {
       } else {
         Alert.alert('Error', 'Failed to sign in with Google. Please try again.');
       }
-    } finally {
       setSsoLoading(false);
     }
+    // Keep ssoLoading true to prevent any other interactions
   };
 
   const handleAppleSignIn = async () => {
@@ -115,16 +132,16 @@ export default function LoginScreen({ navigation }: Props) {
     try {
       await signInWithApple();
       console.log('✅ Apple Sign-In successful!');
-      // Navigation will happen automatically via AppNavigator when auth state changes
+      setAuthSuccess(true);
     } catch (error: any) {
       console.error('❌ Apple Sign-In error:', error);
       if (error.code !== '1001') {
         // Don't show error if user cancelled (code 1001)
         Alert.alert('Error', 'Failed to sign in with Apple. Please try again.');
       }
-    } finally {
       setSsoLoading(false);
     }
+    // Keep ssoLoading true to prevent any other interactions
   };
 
   return (
@@ -235,8 +252,18 @@ export default function LoginScreen({ navigation }: Props) {
             </>
           )}
 
-          <TouchableOpacity onPress={handleGuestMode}>
-            <Text style={styles.guestText}>Continue as Guest</Text>
+          <TouchableOpacity
+            onPress={handleGuestMode}
+            disabled={loading || ssoLoading || authSuccess}
+          >
+            <Text
+              style={[
+                styles.guestText,
+                (loading || ssoLoading || authSuccess) && styles.guestTextDisabled,
+              ]}
+            >
+              Continue as Guest
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -306,6 +333,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     fontSize: 14,
+  },
+  guestTextDisabled: {
+    opacity: 0.3,
   },
   forgotPasswordLink: {
     alignSelf: 'flex-end',
