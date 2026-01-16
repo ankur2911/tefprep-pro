@@ -30,7 +30,13 @@ export default function ProfileScreen({ navigation }: Props) {
         onPress: async () => {
           try {
             await logout();
+            // Force navigation reset to Login screen after logout
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
           } catch (error) {
+            console.error('Logout error:', error);
             Alert.alert('Error', 'Failed to logout');
           }
         },
