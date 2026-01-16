@@ -14,6 +14,7 @@ import { Paper, Question } from '../types';
 import { MOCK_QUESTIONS } from '../utils/mockData';
 import { Colors } from '../utils/colors';
 import { paperService } from '../services/paperService';
+import AudioPlayer from '../components/AudioPlayer';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -27,11 +28,30 @@ export default function TestScreen({ navigation, route }: Props) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<{ [questionId: string]: number }>({});
   const [timeRemaining, setTimeRemaining] = useState(paper.duration * 60);
+  const [isFocused, setIsFocused] = useState(true);
   const handleSubmitRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     loadQuestions();
   }, []);
+
+  // Listen for screen focus/blur to stop audio when navigating away
+  useEffect(() => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      console.log('🎵 TestScreen focused');
+      setIsFocused(true);
+    });
+
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      console.log('🎵 TestScreen blurred - stopping audio');
+      setIsFocused(false);
+    });
+
+    return () => {
+      unsubscribeFocus();
+      unsubscribeBlur();
+    };
+  }, [navigation]);
 
   const loadQuestions = async () => {
     try {
@@ -153,6 +173,11 @@ export default function TestScreen({ navigation, route }: Props) {
       </View>
 
       <ScrollView style={styles.content}>
+        {currentQuestion.audioUrl && (
+          <AudioPlayer audioUrl={currentQuestion.audioUrl} autoPlay={false} isFocused={isFocused} />
+        )}
+        {console.log('🎵 Current question:', currentQuestion.id, 'Has audio:', !!currentQuestion.audioUrl)}
+
         <Text style={styles.question}>{currentQuestion.question}</Text>
 
         <View style={styles.options}>
