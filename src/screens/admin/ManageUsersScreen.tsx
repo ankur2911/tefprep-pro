@@ -152,6 +152,9 @@ export default function ManageUsersScreen({ navigation }: Props) {
           <Text style={styles.infoText}>
             🧪 TEST = Manual override for testing (toggle below)
           </Text>
+          <Text style={[styles.infoText, { marginTop: 8, fontStyle: 'italic' }]}>
+            ⚠️ Missing users? Users created in Firebase Auth need to login once to appear here.
+          </Text>
         </View>
       </View>
 

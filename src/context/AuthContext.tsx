@@ -57,15 +57,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   useEffect(() => {
+    console.log('🔵 Setting up Firebase auth listener...');
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('🔵 Auth state changed! User:', user ? user.email : 'null');
       setUser(user);
-
-      // Create user document if user is logged in
-      if (user) {
-        await createUserDocument(user);
-      }
-
       setLoading(false);
+
+      // Create user document if user is logged in (don't await - do it in background)
+      if (user) {
+        createUserDocument(user).catch(err => {
+          console.warn('⚠️ Could not create user document - continuing anyway:', err);
+        });
+      }
     });
 
     return unsubscribe;

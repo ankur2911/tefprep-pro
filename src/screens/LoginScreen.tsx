@@ -25,7 +25,10 @@ export default function LoginScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    console.log('🔵 Login button clicked!');
+
     if (!email || !password) {
+      console.log('❌ Validation failed: empty fields');
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -33,33 +36,56 @@ export default function LoginScreen({ navigation }: Props) {
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      console.log('❌ Validation failed: invalid email');
       Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
 
     // Password validation
     if (password.length < 6) {
+      console.log('❌ Validation failed: password too short');
       Alert.alert('Error', 'Password must be at least 6 characters long');
       return;
     }
 
+    console.log(`✅ Validation passed, attempting ${isLogin ? 'login' : 'signup'}...`);
     setLoading(true);
     try {
       if (isLogin) {
+        console.log('📧 Signing in with email:', email);
         await signIn(email, password);
+        console.log('✅ Sign in successful!');
       } else {
+        console.log('📧 Signing up with email:', email);
         await signUp(email, password);
+        console.log('✅ Sign up successful!');
         Alert.alert('Success', 'Account created successfully!');
       }
+
+      // Navigate to Main screen after successful auth
+      setTimeout(() => {
+        console.log('🔵 Navigating to Main screen...');
+        navigation.navigate('Main' as never);
+      }, 100);
     } catch (error: any) {
+      console.error('❌ Authentication error:', error);
       Alert.alert('Error', error.message || 'Authentication failed');
     } finally {
       setLoading(false);
+      console.log('🔵 Login attempt completed');
     }
   };
 
   const handleGuestMode = () => {
+    console.log('🔵 Guest mode button clicked!');
     continueAsGuest();
+    console.log('✅ Guest mode activated');
+
+    // Use setTimeout to ensure state update completes before navigation
+    setTimeout(() => {
+      console.log('🔵 Navigating to Main screen...');
+      navigation.navigate('Main' as never);
+    }, 100);
   };
 
   return (

@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Audio } from 'expo-av';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { Paper, Question } from '../types';
@@ -33,6 +35,46 @@ export default function TestResultsScreen({ navigation, route }: Props) {
   const [saved, setSaved] = useState(false);
   const percentage = ((score / totalQuestions) * 100).toFixed(1);
   const passed = parseFloat(percentage) >= 60;
+
+  // Play sound effect based on result
+  useEffect(() => {
+    const playResultSound = async () => {
+      try {
+        // Check if sound effects are enabled
+        const soundEnabled = await AsyncStorage.getItem('soundEffectsEnabled');
+        if (soundEnabled === 'false') {
+          return; // Sound effects disabled
+        }
+
+        // Configure audio mode
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: false,
+        });
+
+        // Play success or failure sound based on result
+        const soundUrl = passed
+          ? 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3' // Success chime
+          : 'https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3'; // Failure buzz
+
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: soundUrl },
+          { shouldPlay: true }
+        );
+
+        // Unload sound after playing
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded && status.didJustFinish) {
+            sound.unloadAsync();
+          }
+        });
+      } catch (error) {
+        console.error('Error playing result sound:', error);
+      }
+    };
+
+    playResultSound();
+  }, [passed]);
 
   // Save test attempt to Firebase
   useEffect(() => {

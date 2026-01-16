@@ -4,6 +4,7 @@ export interface Question {
   options: string[];
   correctAnswer: number;
   explanation?: string;
+  audioUrl?: string; // For listening comprehension questions
 }
 
 export interface Paper {

@@ -37,13 +37,14 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     try {
       const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
+      // Use setDoc with merge instead of updateDoc to handle cases where doc doesn't exist yet
+      await setDoc(userRef, {
         isPremium,
         premiumUpdatedAt: Timestamp.fromDate(new Date()),
-      });
+      }, { merge: true });
       console.log(`✅ Updated user isPremium status to: ${isPremium}`);
     } catch (error) {
-      console.error('❌ Failed to update user premium status:', error);
+      console.warn('⚠️ Could not update user premium status - continuing anyway:', error);
     }
   };
 
@@ -102,6 +103,21 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
     }
 
     try {
+      // Admin gets automatic premium access
+      if (user.email === 'admin@tefprep.com') {
+        console.log('👑 Admin premium access granted automatically');
+        setSubscription({
+          hasActiveSubscription: true,
+          productIdentifier: 'admin_premium',
+          expirationDate: null,
+          willRenew: false,
+          plan: null,
+          isTestPremium: false,
+        });
+        setLoading(false);
+        return;
+      }
+
       // Check for test premium flag in Firestore
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
@@ -154,7 +170,8 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
         await updateUserPremiumStatus(false);
       }
     } catch (error) {
-      console.error('❌ Error fetching subscription:', error);
+      console.warn('⚠️ Error fetching subscription - continuing without RevenueCat:', error);
+      // Don't block - just set no subscription
       setSubscription(null);
     } finally {
       setLoading(false);
@@ -173,15 +190,20 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
           await revenueCatService.identifyUser(user.uid);
         }
 
-        // Load offerings
+        // Load offerings - don't block if this fails
         const offers = await revenueCatService.getOfferings();
         setOfferings(offers);
       } catch (error) {
-        console.error('❌ Failed to initialize RevenueCat:', error);
+        console.warn('⚠️ RevenueCat initialization failed - continuing without subscriptions:', error);
+        // Don't block app - just set offerings to null
+        setOfferings(null);
       }
     };
 
-    initializeRevenueCat();
+    // Don't await - let it run in background
+    initializeRevenueCat().catch(err => {
+      console.warn('⚠️ RevenueCat setup failed - app will continue without subscriptions');
+    });
   }, [user]);
 
   // Listen to subscription updates
@@ -195,11 +217,15 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
     // Initial fetch
     fetchSubscription();
 
-    // Set up listener for purchase updates
-    Purchases.addCustomerInfoUpdateListener((customerInfo) => {
-      console.log('📱 Customer info updated from RevenueCat');
-      fetchSubscription();
-    });
+    // Set up listener for purchase updates - but don't crash if RevenueCat isn't initialized
+    try {
+      Purchases.addCustomerInfoUpdateListener((customerInfo) => {
+        console.log('📱 Customer info updated from RevenueCat');
+        fetchSubscription();
+      });
+    } catch (error) {
+      console.warn('⚠️ Could not set up RevenueCat listener - continuing without it');
+    }
 
     // Cleanup - RevenueCat doesn't require explicit removal
     return () => {

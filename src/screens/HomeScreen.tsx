@@ -264,10 +264,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
   },
   paperMeta: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
+    marginRight: 8,
   },
   metaIcon: {
     fontSize: 12,
@@ -290,10 +293,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 4,
+    flexShrink: 0,
   },
   difficultyText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
+    textAlign: 'center',
   },
   premiumBadge: {
     backgroundColor: '#FEF3C7',

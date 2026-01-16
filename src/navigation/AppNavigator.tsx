@@ -1,7 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 
 // Screens
@@ -12,6 +13,7 @@ import TestScreen from '../screens/TestScreen';
 import TestResultsScreen from '../screens/TestResultsScreen';
 import ProgressScreen from '../screens/ProgressScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
 import AdminScreen from '../screens/AdminScreen';
@@ -90,6 +92,11 @@ function ProfileStack() {
         options={{ title: 'Profile' }}
       />
       <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ title: 'Settings' }}
+      />
+      <Stack.Screen
         name="Admin"
         component={AdminScreen}
         options={{ title: 'Admin Panel' }}
@@ -154,11 +161,17 @@ function TabBarIcon({ label, focused }: { label: string; focused: boolean }) {
 
 // Main Tab Navigator
 function MainTabs() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: {
+          ...styles.tabBar,
+          height: 65 + insets.bottom,
+          paddingBottom: insets.bottom,
+        },
       }}
     >
       <Tab.Screen
@@ -201,6 +214,8 @@ function MainTabs() {
 export default function AppNavigator() {
   const { user, loading, guestMode } = useAuth();
 
+  console.log('🔵 AppNavigator render - user:', user?.email || 'null', 'loading:', loading, 'guestMode:', guestMode);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -242,23 +257,28 @@ export default function AppNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 65,
-    paddingBottom: 8,
-    paddingTop: 8,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
+    paddingTop: 8,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   tabIcon: {
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 80,
+    minWidth: 70,
+    paddingVertical: 4,
   },
   tabIconText: {
     fontSize: 24,
+    marginBottom: 2,
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6B7280',
     marginTop: 2,
   },

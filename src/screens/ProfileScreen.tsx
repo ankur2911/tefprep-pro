@@ -110,7 +110,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => Alert.alert('Settings', 'Settings screen coming soon!')}
+          onPress={() => navigation.navigate('Settings')}
         >
           <Text style={styles.menuItemText}>Settings</Text>
           <Text style={styles.menuItemArrow}>›</Text>

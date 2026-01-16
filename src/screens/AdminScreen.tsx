@@ -244,7 +244,12 @@ export default function AdminScreen({ navigation }: Props) {
           ) : (
             <>
               <Text style={styles.actionButtonIcon}>👤</Text>
-              <Text style={styles.actionButtonText}>Sync My Account to Firestore</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.actionButtonText}>Sync My Account to Firestore</Text>
+                <Text style={[styles.actionButtonText, { fontSize: 11, opacity: 0.8, fontWeight: '400' }]}>
+                  Required for User Management to see this user
+                </Text>
+              </View>
             </>
           )}
         </TouchableOpacity>
@@ -339,19 +344,16 @@ export default function AdminScreen({ navigation }: Props) {
       <View style={styles.infoCard}>
         <Text style={styles.infoTitle}>ℹ️ How to Use</Text>
         <Text style={styles.infoText}>
-          1. First, tap "Sync My Account to Firestore" to create your user document (required for User Management)
+          1. <Text style={{ fontWeight: '600' }}>Sync My Account</Text> - Creates your user document in Firestore (required for User Management to see you)
         </Text>
         <Text style={styles.infoText}>
-          2. Tap "Test Firebase Rules" to check if your rules are configured correctly
+          2. <Text style={{ fontWeight: '600' }}>Test Firebase Rules</Text> - Checks if your Firestore security rules are configured correctly
         </Text>
         <Text style={styles.infoText}>
-          3. If the test fails, tap "Show Correct Rules" and update your Firebase console
+          3. <Text style={{ fontWeight: '600' }}>Upload Mock Data</Text> - Uploads 16+ practice papers with questions to Firebase (takes 2-3 minutes)
         </Text>
-        <Text style={styles.infoText}>
-          4. Once rules pass, tap "Upload Mock Data to Firebase" (takes 2-3 minutes)
-        </Text>
-        <Text style={styles.infoText}>
-          5. The app will automatically use Firebase data when available
+        <Text style={[styles.infoText, { marginTop: 8, fontStyle: 'italic', opacity: 0.8 }]}>
+          Note: Other users need to login once to appear in User Management
         </Text>
       </View>
     </ScrollView>
