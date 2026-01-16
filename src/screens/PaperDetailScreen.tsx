@@ -28,6 +28,28 @@ export default function PaperDetailScreen({ navigation, route }: Props) {
   const [attempts, setAttempts] = useState<TestAttempt[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Set up navigation header with custom back button
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => {
+            // Check if we can go back in the stack
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              // If no history, navigate to Papers tab
+              navigation.navigate('Papers');
+            }
+          }}
+          style={{ marginLeft: 8, padding: 8 }}
+        >
+          <Text style={{ fontSize: 16, color: Colors.primary }}>← Back</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
   // Handle missing paper data
   if (!paper) {
     return (
