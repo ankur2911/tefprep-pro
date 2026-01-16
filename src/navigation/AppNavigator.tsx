@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Platform, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 
@@ -170,16 +170,31 @@ function TabBarIcon({ label, focused }: { label: string; focused: boolean }) {
 function MainTabs() {
   const insets = useSafeAreaInsets();
 
+  // Helper function to check if we're currently on the Test screen
+  const isOnTestScreen = (state: any): boolean => {
+    if (!state) return false;
+
+    // Get the currently active route in the tab navigator
+    const tabRoute = state.routes[state.index];
+
+    if (!tabRoute.state) return false;
+
+    // Get the currently active route in the stack navigator
+    const stackRoute = tabRoute.state.routes[tabRoute.state.index];
+
+    return stackRoute.name === 'Test';
+  };
+
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ navigation }) => ({
         headerShown: false,
         tabBarStyle: {
           ...styles.tabBar,
           height: 65 + insets.bottom,
           paddingBottom: insets.bottom,
         },
-      }}
+      })}
     >
       <Tab.Screen
         name="HomeTab"
@@ -188,6 +203,29 @@ function MainTabs() {
           tabBarIcon: ({ focused }) => <TabBarIcon label="HomeTab" focused={focused} />,
           tabBarLabel: () => null,
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            const state = navigation.getState();
+            if (isOnTestScreen(state)) {
+              e.preventDefault();
+              Alert.alert(
+                'Quit Test?',
+                'Are you sure you want to quit this test? Your progress will be lost and the test will be reset.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Quit',
+                    style: 'destructive',
+                    onPress: () => {
+                      navigation.navigate('PapersTab', { screen: 'Papers' });
+                      setTimeout(() => navigation.navigate('HomeTab'), 100);
+                    },
+                  },
+                ]
+              );
+            }
+          },
+        })}
       />
       <Tab.Screen
         name="PapersTab"
@@ -196,6 +234,28 @@ function MainTabs() {
           tabBarIcon: ({ focused }) => <TabBarIcon label="PapersTab" focused={focused} />,
           tabBarLabel: () => null,
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            const state = navigation.getState();
+            if (isOnTestScreen(state)) {
+              e.preventDefault();
+              Alert.alert(
+                'Quit Test?',
+                'Are you sure you want to quit this test? Your progress will be lost and the test will be reset.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Quit',
+                    style: 'destructive',
+                    onPress: () => {
+                      navigation.navigate('PapersTab', { screen: 'Papers' });
+                    },
+                  },
+                ]
+              );
+            }
+          },
+        })}
       />
       <Tab.Screen
         name="ProgressTab"
@@ -204,6 +264,29 @@ function MainTabs() {
           tabBarIcon: ({ focused }) => <TabBarIcon label="ProgressTab" focused={focused} />,
           tabBarLabel: () => null,
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            const state = navigation.getState();
+            if (isOnTestScreen(state)) {
+              e.preventDefault();
+              Alert.alert(
+                'Quit Test?',
+                'Are you sure you want to quit this test? Your progress will be lost and the test will be reset.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Quit',
+                    style: 'destructive',
+                    onPress: () => {
+                      navigation.navigate('PapersTab', { screen: 'Papers' });
+                      setTimeout(() => navigation.navigate('ProgressTab'), 100);
+                    },
+                  },
+                ]
+              );
+            }
+          },
+        })}
       />
       <Tab.Screen
         name="ProfileTab"
@@ -212,6 +295,29 @@ function MainTabs() {
           tabBarIcon: ({ focused }) => <TabBarIcon label="ProfileTab" focused={focused} />,
           tabBarLabel: () => null,
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            const state = navigation.getState();
+            if (isOnTestScreen(state)) {
+              e.preventDefault();
+              Alert.alert(
+                'Quit Test?',
+                'Are you sure you want to quit this test? Your progress will be lost and the test will be reset.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Quit',
+                    style: 'destructive',
+                    onPress: () => {
+                      navigation.navigate('PapersTab', { screen: 'Papers' });
+                      setTimeout(() => navigation.navigate('ProfileTab'), 100);
+                    },
+                  },
+                ]
+              );
+            }
+          },
+        })}
       />
     </Tab.Navigator>
   );
