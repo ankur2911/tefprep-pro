@@ -28,6 +28,11 @@ export default function SettingsScreen({ navigation }: Props) {
   const [lastName, setLastName] = React.useState('');
   const [loading, setLoading] = React.useState(true);
 
+  // Check if user signed in with email/password (not SSO)
+  const hasPasswordProvider = user?.providerData.some(
+    (provider) => provider.providerId === 'password'
+  );
+
   // Load user data and preferences
   React.useEffect(() => {
     loadUserData();
@@ -157,10 +162,12 @@ export default function SettingsScreen({ navigation }: Props) {
             <Text style={styles.infoValue}>{user.email}</Text>
           </View>
 
-          <TouchableOpacity style={styles.menuItem} onPress={handleChangePassword}>
-            <Text style={styles.menuItemText}>Change Password</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
-          </TouchableOpacity>
+          {hasPasswordProvider && (
+            <TouchableOpacity style={styles.menuItem} onPress={handleChangePassword}>
+              <Text style={styles.menuItemText}>Change Password</Text>
+              <Text style={styles.menuItemArrow}>›</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
