@@ -30,6 +30,7 @@ export default function TestScreen({ navigation, route }: Props) {
   const [timeRemaining, setTimeRemaining] = useState(paper.duration * 60);
   const [isFocused, setIsFocused] = useState(true);
   const handleSubmitRef = useRef<(() => void) | null>(null);
+  const [canNavigate, setCanNavigate] = useState(false);
 
   useEffect(() => {
     loadQuestions();
@@ -52,6 +53,45 @@ export default function TestScreen({ navigation, route }: Props) {
       unsubscribeBlur();
     };
   }, [navigation]);
+
+  // Prevent navigation away from test without confirmation
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      // If we've already confirmed or the test is being submitted, allow navigation
+      if (canNavigate) {
+        return;
+      }
+
+      // Prevent default navigation behavior
+      e.preventDefault();
+
+      // Show confirmation dialog
+      Alert.alert(
+        'Quit Test?',
+        'Are you sure you want to quit this test? Your progress will be lost and the test will be reset.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Quit',
+            style: 'destructive',
+            onPress: () => {
+              // Allow navigation and reset test
+              setCanNavigate(true);
+              // Navigate back after state update
+              setTimeout(() => {
+                navigation.dispatch(e.data.action);
+              }, 0);
+            },
+          },
+        ]
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation, canNavigate]);
 
   const loadQuestions = async () => {
     try {
@@ -121,6 +161,9 @@ export default function TestScreen({ navigation, route }: Props) {
     // Calculate time spent (total time - remaining time)
     const timeSpent = (paper.duration * 60) - timeRemaining;
 
+    // Allow navigation for test submission
+    setCanNavigate(true);
+
     navigation.replace('TestResults', {
       paper,
       score,
@@ -129,6 +172,29 @@ export default function TestScreen({ navigation, route }: Props) {
       questions,
       timeSpent,
     });
+  };
+
+  const handleQuit = () => {
+    Alert.alert(
+      'Quit Test?',
+      'Are you sure you want to quit this test? Your progress will be lost and the test will be reset.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Quit',
+          style: 'destructive',
+          onPress: () => {
+            setCanNavigate(true);
+            setTimeout(() => {
+              navigation.navigate('Papers');
+            }, 0);
+          },
+        },
+      ]
+    );
   };
 
   // Update ref whenever handleSubmit changes
@@ -166,10 +232,16 @@ export default function TestScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.timer}>{formatTime(timeRemaining)}</Text>
-        <Text style={styles.progress}>
-          {currentQuestionIndex + 1} / {questions.length}
-        </Text>
+        <TouchableOpacity onPress={handleQuit} style={styles.quitButton}>
+          <Text style={styles.quitButtonText}>Quit</Text>
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <Text style={styles.timer}>{formatTime(timeRemaining)}</Text>
+          <Text style={styles.progress}>
+            {currentQuestionIndex + 1} / {questions.length}
+          </Text>
+        </View>
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView style={styles.content}>
@@ -234,10 +306,32 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 20,
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+  },
+  quitButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.error,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  quitButtonText: {
+    color: Colors.textInverse,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  headerCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  headerSpacer: {
+    minWidth: 60,
   },
   timer: {
     fontSize: 20,
