@@ -128,26 +128,51 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Configure Google Sign-In
   useEffect(() => {
     if (GOOGLE_WEB_CLIENT_ID) {
+      console.log('🔵 Configuring Google Sign-In with Web Client ID:',
+        GOOGLE_WEB_CLIENT_ID.substring(0, 20) + '...');
       GoogleSignin.configure({
         webClientId: GOOGLE_WEB_CLIENT_ID,
         offlineAccess: true,
       });
+      console.log('✅ Google Sign-In configured');
+    } else {
+      console.error('❌ GOOGLE_WEB_CLIENT_ID is not set!');
     }
   }, []);
 
   const signInWithGoogle = async () => {
     try {
+      console.log('🔵 Starting Google Sign-In...');
+
       // Check if device supports Google Play services
       await GoogleSignin.hasPlayServices();
+      console.log('✅ Google Play Services available');
 
-      // Get user info
-      const { idToken } = await GoogleSignin.signIn();
+      // Get user info and tokens
+      const signInResult = await GoogleSignin.signIn();
+      console.log('✅ Google Sign-In result received:', {
+        hasIdToken: !!signInResult.idToken,
+        hasData: !!signInResult.data,
+        keys: Object.keys(signInResult),
+      });
+
+      // Extract idToken - it might be at different locations depending on version
+      const idToken = signInResult.idToken || signInResult.data?.idToken;
+
+      if (!idToken) {
+        console.error('❌ No idToken found in response:', JSON.stringify(signInResult, null, 2));
+        throw new Error('Failed to get idToken from Google Sign-In');
+      }
+
+      console.log('✅ idToken extracted successfully');
 
       // Create Firebase credential
       const googleCredential = GoogleAuthProvider.credential(idToken);
+      console.log('✅ Firebase credential created');
 
       // Sign in to Firebase
       const userCredential = await signInWithCredential(auth, googleCredential);
+      console.log('✅ Signed in to Firebase:', userCredential.user.email);
 
       // Extract name from Google profile
       const userInfo = await GoogleSignin.getCurrentUser();
@@ -155,18 +180,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const nameParts = displayName.split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
+      console.log('✅ Extracted user name:', { firstName, lastName });
 
       // Create user document
       await createUserDocument(userCredential.user, firstName, lastName);
+      console.log('✅ User document created');
 
       // Identify user in RevenueCat
       try {
         await revenueCatService.identifyUser(userCredential.user.uid);
+        console.log('✅ User identified in RevenueCat');
       } catch (error) {
         console.error('Failed to identify user in RevenueCat:', error);
       }
     } catch (error: any) {
-      console.error('Google Sign-In Error:', error);
+      console.error('❌ Google Sign-In error:', error);
       throw error;
     }
   };
