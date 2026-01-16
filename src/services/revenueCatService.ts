@@ -30,8 +30,11 @@ class RevenueCatService {
         android: REVENUECAT_API_KEY_GOOGLE,
       });
 
-      if (!apiKey) {
-        throw new Error('RevenueCat API key not configured for this platform');
+      // Skip initialization if API key is not configured or is a placeholder
+      if (!apiKey || apiKey.includes('xxxx') || apiKey.length < 20) {
+        console.warn('⚠️ RevenueCat API key not configured. Skipping initialization. Subscriptions will not work until you add real API keys.');
+        this.isInitialized = false;
+        return;
       }
 
       // Configure SDK with debug logging in development
@@ -49,7 +52,8 @@ class RevenueCatService {
       console.log('✅ RevenueCat initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize RevenueCat:', error);
-      throw error;
+      // Don't throw - allow app to continue without RevenueCat
+      this.isInitialized = false;
     }
   }
 
@@ -88,6 +92,11 @@ class RevenueCatService {
    * @returns Offerings object containing available packages
    */
   async getOfferings(): Promise<PurchasesOfferings | null> {
+    if (!this.isInitialized) {
+      console.warn('⚠️ RevenueCat not initialized');
+      return null;
+    }
+
     try {
       const offerings = await Purchases.getOfferings();
       if (offerings.current) {
@@ -143,6 +152,11 @@ class RevenueCatService {
    * @returns Customer info object
    */
   async getCustomerInfo(): Promise<CustomerInfo | null> {
+    if (!this.isInitialized) {
+      console.warn('⚠️ RevenueCat not initialized');
+      return null;
+    }
+
     try {
       const customerInfo = await Purchases.getCustomerInfo();
       return customerInfo;
@@ -204,6 +218,11 @@ class RevenueCatService {
     willRenew: boolean;
     isInGracePeriod: boolean;
   } | null> {
+    if (!this.isInitialized) {
+      console.warn('⚠️ RevenueCat not initialized');
+      return null;
+    }
+
     try {
       const customerInfo = await this.getCustomerInfo();
       if (!customerInfo) return null;
