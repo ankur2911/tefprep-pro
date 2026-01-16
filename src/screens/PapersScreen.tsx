@@ -21,6 +21,17 @@ type Props = {
   navigation: NativeStackNavigationProp<any>;
 };
 
+// Category translations
+const CATEGORY_TRANSLATIONS: { [key: string]: string } = {
+  'Tous': 'All',
+  'Compréhension Orale': 'Listening',
+  'Expression Écrite': 'Writing',
+  'Compréhension Écrite': 'Reading',
+  'Expression Orale': 'Speaking',
+  'Vocabulaire et Grammaire': 'Vocabulary & Grammar',
+  'Test Complet': 'Complete Test',
+};
+
 export default function PapersScreen({ navigation }: Props) {
   const { canAccessPaper } = useSubscription();
   const [papers, setPapers] = useState<Paper[]>([]);
@@ -190,14 +201,26 @@ export default function PapersScreen({ navigation }: Props) {
               onPress={() => setSelectedCategory(category)}
               activeOpacity={0.7}
             >
-              <Text
-                style={[
-                  styles.categoryChipText,
-                  selectedCategory === category && styles.categoryChipTextSelected,
-                ]}
-              >
-                {category}
-              </Text>
+              <View style={styles.categoryChipContent}>
+                <Text
+                  style={[
+                    styles.categoryChipText,
+                    selectedCategory === category && styles.categoryChipTextSelected,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {category}
+                </Text>
+                <Text
+                  style={[
+                    styles.categoryChipSubtext,
+                    selectedCategory === category && styles.categoryChipSubtextSelected,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {CATEGORY_TRANSLATIONS[category]}
+                </Text>
+              </View>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -259,7 +282,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   categoriesWrapper: {
-    height: 72,
+    height: 90,
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
@@ -269,18 +292,18 @@ const styles = StyleSheet.create({
   },
   categoriesContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 12,
     flexGrow: 0,
   },
   categoryChip: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    height: 44,
-    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minHeight: 62,
+    borderRadius: 12,
     backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: Colors.border,
-    marginRight: 12,
+    marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -288,15 +311,30 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
+  categoryChipContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   categoryChipText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    lineHeight: 20,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    lineHeight: 18,
+    marginBottom: 2,
   },
   categoryChipTextSelected: {
     color: Colors.textInverse,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  categoryChipSubtext: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    lineHeight: 14,
+  },
+  categoryChipSubtextSelected: {
+    color: Colors.textInverse,
+    opacity: 0.9,
   },
   list: {
     padding: 16,
