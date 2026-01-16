@@ -18,11 +18,14 @@ type Props = {
 };
 
 export default function LoginScreen({ navigation }: Props) {
-  const { signIn, signUp, continueAsGuest } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithApple, continueAsGuest } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [ssoLoading, setSsoLoading] = useState(false);
 
   const handleSubmit = async () => {
     console.log('🔵 Login button clicked!');
@@ -30,6 +33,13 @@ export default function LoginScreen({ navigation }: Props) {
     if (!email || !password) {
       console.log('❌ Validation failed: empty fields');
       Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    // Additional validation for sign up
+    if (!isLogin && (!firstName.trim() || !lastName.trim())) {
+      console.log('❌ Validation failed: missing name');
+      Alert.alert('Error', 'Please enter your first and last name');
       return;
     }
 
@@ -57,7 +67,7 @@ export default function LoginScreen({ navigation }: Props) {
         console.log('✅ Sign in successful!');
       } else {
         console.log('📧 Signing up with email:', email);
-        await signUp(email, password);
+        await signUp(email, password, firstName.trim(), lastName.trim());
         console.log('✅ Sign up successful!');
         Alert.alert('Success', 'Account created successfully!');
       }
@@ -88,6 +98,54 @@ export default function LoginScreen({ navigation }: Props) {
     }, 100);
   };
 
+  const handleGoogleSignIn = async () => {
+    console.log('🔵 Google Sign-In button clicked!');
+    setSsoLoading(true);
+    try {
+      await signInWithGoogle();
+      console.log('✅ Google Sign-In successful!');
+
+      // Navigate to Main screen
+      setTimeout(() => {
+        console.log('🔵 Navigating to Main screen...');
+        navigation.navigate('Main' as never);
+      }, 100);
+    } catch (error: any) {
+      console.error('❌ Google Sign-In error:', error);
+      if (error.code === '12501') {
+        // User cancelled
+        console.log('User cancelled Google Sign-In');
+      } else {
+        Alert.alert('Error', 'Failed to sign in with Google. Please try again.');
+      }
+    } finally {
+      setSsoLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    console.log('🔵 Apple Sign-In button clicked!');
+    setSsoLoading(true);
+    try {
+      await signInWithApple();
+      console.log('✅ Apple Sign-In successful!');
+
+      // Navigate to Main screen
+      setTimeout(() => {
+        console.log('🔵 Navigating to Main screen...');
+        navigation.navigate('Main' as never);
+      }, 100);
+    } catch (error: any) {
+      console.error('❌ Apple Sign-In error:', error);
+      if (error.code !== '1001') {
+        // Don't show error if user cancelled (code 1001)
+        Alert.alert('Error', 'Failed to sign in with Apple. Please try again.');
+      }
+    } finally {
+      setSsoLoading(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -98,6 +156,28 @@ export default function LoginScreen({ navigation }: Props) {
         <Text style={styles.subtitle}>Master Your French Certification</Text>
 
         <View style={styles.form}>
+          {!isLogin && (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="First Name"
+                value={firstName}
+                onChangeText={setFirstName}
+                autoCapitalize="words"
+                placeholderTextColor={Colors.textSecondary}
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder="Last Name"
+                value={lastName}
+                onChangeText={setLastName}
+                autoCapitalize="words"
+                placeholderTextColor={Colors.textSecondary}
+              />
+            </>
+          )}
+
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -132,6 +212,38 @@ export default function LoginScreen({ navigation }: Props) {
               {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
             </Text>
           </TouchableOpacity>
+
+          {isLogin && (
+            <>
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>OR</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.ssoButton, styles.googleButton, ssoLoading && styles.buttonDisabled]}
+                onPress={handleGoogleSignIn}
+                disabled={ssoLoading || loading}
+              >
+                <Text style={styles.ssoButtonText}>
+                  {ssoLoading ? 'Please wait...' : '🔵 Continue with Google'}
+                </Text>
+              </TouchableOpacity>
+
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  style={[styles.ssoButton, styles.appleButton, ssoLoading && styles.buttonDisabled]}
+                  onPress={handleAppleSignIn}
+                  disabled={ssoLoading || loading}
+                >
+                  <Text style={[styles.ssoButtonText, styles.appleButtonText]}>
+                    {ssoLoading ? 'Please wait...' : ' Continue with Apple'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
 
           <TouchableOpacity onPress={handleGuestMode}>
             <Text style={styles.guestText}>Continue as Guest</Text>
@@ -204,5 +316,44 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     fontSize: 14,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  dividerText: {
+    color: Colors.textSecondary,
+    paddingHorizontal: 16,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  ssoButton: {
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  googleButton: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+  },
+  appleButton: {
+    backgroundColor: '#000',
+    borderColor: '#000',
+  },
+  ssoButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  appleButtonText: {
+    color: '#fff',
   },
 });
