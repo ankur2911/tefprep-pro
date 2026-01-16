@@ -7,9 +7,15 @@ import {
   ScrollView,
   Alert,
   Switch,
+  ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { doc, getDoc } from 'firebase/firestore';
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { useAuth } from '../context/AuthContext';
+import { db } from '../config/firebase';
 import { Colors } from '../utils/colors';
 
 type Props = {
@@ -17,12 +23,39 @@ type Props = {
 };
 
 export default function SettingsScreen({ navigation }: Props) {
+  const { user } = useAuth();
   const [soundEnabled, setSoundEnabled] = React.useState(true);
+  const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
+  const [loading, setLoading] = React.useState(true);
 
-  // Load sound preference from storage
+  // Load user data and preferences
   React.useEffect(() => {
+    loadUserData();
     loadSoundPreference();
   }, []);
+
+  const loadUserData = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        setFirstName(data.firstName || '');
+        setLastName(data.lastName || '');
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadSoundPreference = async () => {
     try {
@@ -42,6 +75,67 @@ export default function SettingsScreen({ navigation }: Props) {
     } catch (error) {
       console.error('Error saving sound preference:', error);
     }
+  };
+
+  const handleChangePassword = () => {
+    if (!user) return;
+
+    Alert.prompt(
+      'Change Password',
+      'Enter your current password:',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Next',
+          onPress: (currentPassword) => {
+            if (!currentPassword) {
+              Alert.alert('Error', 'Please enter your current password');
+              return;
+            }
+
+            Alert.prompt(
+              'Change Password',
+              'Enter your new password (min 6 characters):',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Change',
+                  onPress: async (newPassword) => {
+                    if (!newPassword || newPassword.length < 6) {
+                      Alert.alert('Error', 'Password must be at least 6 characters long');
+                      return;
+                    }
+
+                    try {
+                      // Re-authenticate user
+                      const credential = EmailAuthProvider.credential(
+                        user.email!,
+                        currentPassword
+                      );
+                      await reauthenticateWithCredential(user, credential);
+
+                      // Update password
+                      await updatePassword(user, newPassword);
+
+                      Alert.alert('Success', 'Your password has been updated successfully');
+                    } catch (error: any) {
+                      console.error('Error changing password:', error);
+                      if (error.code === 'auth/wrong-password') {
+                        Alert.alert('Error', 'Current password is incorrect');
+                      } else {
+                        Alert.alert('Error', 'Failed to change password. Please try again.');
+                      }
+                    }
+                  },
+                },
+              ],
+              'secure-text'
+            );
+          },
+        },
+      ],
+      'secure-text'
+    );
   };
 
   const handleClearCache = () => {
@@ -91,8 +185,42 @@ export default function SettingsScreen({ navigation }: Props) {
     );
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container}>
+      {user && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account Information</Text>
+
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>First Name</Text>
+            <Text style={styles.infoValue}>{firstName || 'Not set'}</Text>
+          </View>
+
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Last Name</Text>
+            <Text style={styles.infoValue}>{lastName || 'Not set'}</Text>
+          </View>
+
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Email</Text>
+            <Text style={styles.infoValue}>{user.email}</Text>
+          </View>
+
+          <TouchableOpacity style={styles.menuItem} onPress={handleChangePassword}>
+            <Text style={styles.menuItemText}>Change Password</Text>
+            <Text style={styles.menuItemArrow}>›</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Preferences</Text>
 
@@ -155,6 +283,12 @@ export default function SettingsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: Colors.background,
   },
   section: {
