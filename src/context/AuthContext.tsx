@@ -126,13 +126,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Sign out from Google if currently signed in
     try {
-      const isSignedIn = await GoogleSignin.isSignedIn();
-      if (isSignedIn) {
-        await GoogleSignin.signOut();
-        console.log('✅ Signed out from Google');
-      }
+      await GoogleSignin.signOut();
+      console.log('✅ Signed out from Google');
     } catch (error) {
-      console.error('Failed to sign out from Google:', error);
+      // Ignore error if user wasn't signed in with Google
+      console.log('ℹ️ Google sign out skipped (not signed in with Google)');
     }
 
     // Sign out from Firebase

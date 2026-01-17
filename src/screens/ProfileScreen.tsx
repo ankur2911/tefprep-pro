@@ -30,11 +30,8 @@ export default function ProfileScreen({ navigation }: Props) {
         onPress: async () => {
           try {
             await logout();
-            // Force navigation reset to Login screen after logout
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Login' }],
-            });
+            // Navigation will automatically switch to Login screen when user becomes null
+            console.log('✅ Logout complete - navigation will handle screen change');
           } catch (error) {
             console.error('Logout error:', error);
             Alert.alert('Error', 'Failed to logout');
