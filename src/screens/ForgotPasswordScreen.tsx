@@ -48,7 +48,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       setEmailSent(true);
       Alert.alert(
         'Email Sent',
-        `A password reset link has been sent to ${email}. Please check your inbox (and spam/junk folder) and follow the instructions to reset your password.`,
+        `A password reset link has been sent to ${email}.\n\nPlease check your inbox (and spam/junk folder) and click the link within 1 hour.\n\nNote: Each link can only be used once. If you request a new link, old links will expire.`,
         [
           {
             text: 'OK',
