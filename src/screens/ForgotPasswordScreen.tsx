@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import { sendPasswordResetEmail, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { Colors } from '../utils/colors';
 
@@ -40,9 +40,36 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       return;
     }
 
-    console.log('✅ Email validation passed, sending reset email...');
+    console.log('✅ Email validation passed, checking sign-in methods...');
     setLoading(true);
     try {
+      // Check what sign-in methods are associated with this email
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      console.log('Sign-in methods for', email, ':', signInMethods);
+
+      // Check if user signed in with SSO (Google or Apple)
+      const isSSOUser = signInMethods.some(method =>
+        method === 'google.com' || method === 'apple.com'
+      );
+
+      if (isSSOUser) {
+        console.log('⚠️ User signed in with SSO, cannot reset password');
+        const ssoProvider = signInMethods.includes('google.com') ? 'Google' : 'Apple';
+        setLoading(false);
+        Alert.alert(
+          'SSO Account',
+          `This account uses ${ssoProvider} Sign-In. Your password is managed by ${ssoProvider}.\n\nTo reset your password, please visit your ${ssoProvider} account settings.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
+        return;
+      }
+
+      // User has email/password auth, send reset email
       await sendPasswordResetEmail(auth, email);
       console.log('✅ Password reset email sent successfully to:', email);
       setEmailSent(true);
