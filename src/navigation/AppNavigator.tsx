@@ -329,6 +329,14 @@ export default function AppNavigator() {
   const isAuthenticated = !!(user || guestMode);
   const prevAuthRef = React.useRef(isAuthenticated);
 
+  // Track authentication state changes (MUST be before any conditional returns)
+  React.useEffect(() => {
+    if (isAuthenticated && !prevAuthRef.current) {
+      console.log('🔵 User just authenticated - will show Main screen');
+    }
+    prevAuthRef.current = isAuthenticated;
+  }, [isAuthenticated]);
+
   console.log('🔵 AppNavigator render - user:', user?.email || 'null', 'loading:', loading, 'guestMode:', guestMode);
 
   if (loading) {
@@ -339,14 +347,6 @@ export default function AppNavigator() {
       </View>
     );
   }
-
-  // Track authentication state changes
-  React.useEffect(() => {
-    if (isAuthenticated && !prevAuthRef.current) {
-      console.log('🔵 User just authenticated - will show Main screen');
-    }
-    prevAuthRef.current = isAuthenticated;
-  }, [isAuthenticated]);
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
