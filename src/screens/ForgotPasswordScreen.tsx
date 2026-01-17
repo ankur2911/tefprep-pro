@@ -25,6 +25,8 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
   const [emailSent, setEmailSent] = useState(false);
 
   const handleResetPassword = async () => {
+    console.log('🔵 Password reset requested for email:', email);
+
     // Validation
     if (!email) {
       Alert.alert('Error', 'Please enter your email address');
@@ -33,17 +35,20 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      console.log('❌ Invalid email format');
       Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
 
+    console.log('✅ Email validation passed, sending reset email...');
     setLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
+      console.log('✅ Password reset email sent successfully to:', email);
       setEmailSent(true);
       Alert.alert(
         'Email Sent',
-        'A password reset link has been sent to your email address. Please check your inbox and follow the instructions to reset your password.',
+        `A password reset link has been sent to ${email}. Please check your inbox (and spam/junk folder) and follow the instructions to reset your password.`,
         [
           {
             text: 'OK',
@@ -52,7 +57,9 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
         ]
       );
     } catch (error: any) {
-      console.error('Password reset error:', error);
+      console.error('❌ Password reset error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
 
       if (error.code === 'auth/user-not-found') {
         Alert.alert('Error', 'No account found with this email address');
@@ -61,7 +68,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       } else if (error.code === 'auth/too-many-requests') {
         Alert.alert('Error', 'Too many requests. Please try again later.');
       } else {
-        Alert.alert('Error', 'Failed to send reset email. Please try again.');
+        Alert.alert('Error', `Failed to send reset email: ${error.message}`);
       }
     } finally {
       setLoading(false);
