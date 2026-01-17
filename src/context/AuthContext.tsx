@@ -195,6 +195,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Sign in to Firebase
       const userCredential = await signInWithCredential(auth, googleCredential);
       console.log('✅ Signed in to Firebase:', userCredential.user.email);
+      console.log('✅ User providerData:', JSON.stringify(userCredential.user.providerData, null, 2));
 
       // Extract name from Google profile
       const userInfo = await GoogleSignin.getCurrentUser();
