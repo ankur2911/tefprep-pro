@@ -326,22 +326,10 @@ function MainTabs() {
 // Root Navigator with Auth Check
 export default function AppNavigator() {
   const { user, loading, guestMode } = useAuth();
-  const navigationRef = React.useRef<any>(null);
+  const isAuthenticated = !!(user || guestMode);
+  const prevAuthRef = React.useRef(isAuthenticated);
 
   console.log('🔵 AppNavigator render - user:', user?.email || 'null', 'loading:', loading, 'guestMode:', guestMode);
-
-  // Navigate to Main when user becomes authenticated
-  React.useEffect(() => {
-    if ((user || guestMode) && navigationRef.current) {
-      console.log('🔵 User authenticated - resetting navigation to Main');
-      setTimeout(() => {
-        navigationRef.current?.reset({
-          index: 0,
-          routes: [{ name: 'Main' }],
-        });
-      }, 100);
-    }
-  }, [user, guestMode]);
 
   if (loading) {
     return (
@@ -352,12 +340,17 @@ export default function AppNavigator() {
     );
   }
 
+  // Track authentication state changes
+  React.useEffect(() => {
+    if (isAuthenticated && !prevAuthRef.current) {
+      console.log('🔵 User just authenticated - will show Main screen');
+    }
+    prevAuthRef.current = isAuthenticated;
+  }, [isAuthenticated]);
+
   return (
-    <Stack.Navigator
-      ref={navigationRef}
-      screenOptions={{ headerShown: false }}
-    >
-      {user || guestMode ? (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {isAuthenticated ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen
@@ -366,14 +359,6 @@ export default function AppNavigator() {
             options={{
               headerShown: true,
               title: 'Subscription',
-              presentation: 'modal'
-            }}
-          />
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{
-              headerShown: false,
               presentation: 'modal'
             }}
           />
