@@ -169,7 +169,7 @@ export default function ProfileScreen({ navigation }: Props) {
           onPress={() =>
             Alert.alert(
               'Contact Support',
-              'Need help?\n\nEmail: support@tefprep.com\n\nWe typically respond within 24 hours.',
+              'Need help?\n\nEmail: akmgcorp@gmail.com\n\nWe typically respond within 24 hours.',
               [
                 { text: 'Cancel', style: 'cancel' },
                 {
