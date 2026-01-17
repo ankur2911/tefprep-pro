@@ -47,6 +47,23 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       const signInMethods = await fetchSignInMethodsForEmail(auth, email);
       console.log('Sign-in methods for', email, ':', signInMethods);
 
+      // If no sign-in methods found, user doesn't exist
+      if (signInMethods.length === 0) {
+        console.log('⚠️ No account found with this email');
+        setLoading(false);
+        Alert.alert(
+          'Account Not Found',
+          `No account exists with the email ${email}.\n\nPlease check the email address or sign up for a new account.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
+        return;
+      }
+
       // Check if user signed in with SSO (Google or Apple)
       const isSSOUser = signInMethods.some(method =>
         method === 'google.com' || method === 'apple.com'
