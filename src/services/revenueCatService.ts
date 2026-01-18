@@ -98,10 +98,33 @@ class RevenueCatService {
     }
 
     try {
+      console.log('📡 Fetching offerings from RevenueCat...');
       const offerings = await Purchases.getOfferings();
+
+      console.log('📦 Offerings response:', {
+        hasCurrent: !!offerings.current,
+        currentIdentifier: offerings.current?.identifier,
+        currentPackagesCount: offerings.current?.availablePackages.length || 0,
+        allOfferingsCount: Object.keys(offerings.all).length,
+        allOfferingsKeys: Object.keys(offerings.all),
+      });
+
       if (offerings.current) {
-        console.log('✅ Loaded offerings:', offerings.current.availablePackages.length, 'packages');
+        console.log('✅ Current offering loaded:', offerings.current.identifier);
+        console.log('   - Packages:', offerings.current.availablePackages.length);
+        offerings.current.availablePackages.forEach((pkg, i) => {
+          console.log(`   - Package ${i + 1}: ${pkg.identifier} (${pkg.product.identifier}) - ${pkg.product.priceString}`);
+        });
+      } else {
+        console.warn('⚠️ No current offering found');
+
+        // Log all available offerings
+        Object.keys(offerings.all).forEach(key => {
+          const offering = offerings.all[key];
+          console.log(`   - Offering "${key}": ${offering.availablePackages.length} packages`);
+        });
       }
+
       return offerings;
     } catch (error) {
       console.error('❌ Failed to get offerings:', error);
