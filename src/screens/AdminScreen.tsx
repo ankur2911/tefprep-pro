@@ -57,7 +57,7 @@ export default function AdminScreen({ navigation }: Props) {
   const handleUploadData = async () => {
     Alert.alert(
       'Upload Mock Data',
-      'This will upload all 16 papers and their questions to Firebase.\n\n⏱️ This will take 2-3 minutes to avoid bandwidth limits.\n\nContinue?',
+      'This will upload all 18 papers and their questions to Firebase.\n\n⏱️ This will take 2-3 minutes to avoid bandwidth limits.\n\nContinue?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -350,7 +350,7 @@ export default function AdminScreen({ navigation }: Props) {
           2. <Text style={{ fontWeight: '600' }}>Test Firebase Rules</Text> - Checks if your Firestore security rules are configured correctly
         </Text>
         <Text style={styles.infoText}>
-          3. <Text style={{ fontWeight: '600' }}>Upload Mock Data</Text> - Uploads 16+ practice papers with questions to Firebase (takes 2-3 minutes)
+          3. <Text style={{ fontWeight: '600' }}>Upload Mock Data</Text> - Uploads 18 practice papers with questions to Firebase (takes 2-3 minutes)
         </Text>
         <Text style={[styles.infoText, { marginTop: 8, fontStyle: 'italic', opacity: 0.8 }]}>
           Note: Other users need to login once to appear in User Management
