@@ -61,15 +61,45 @@ export default function SubscriptionScreen({ navigation }: Props) {
 
     if (!offerings?.current) {
       console.log('❌ No current offering available');
-      console.log('🔍 All offerings:', Object.keys(offerings.all));
+      console.log('🔍 All offerings keys:', Object.keys(offerings.all));
+
+      // Try to use any available offering
+      const allOfferingsKeys = Object.keys(offerings.all);
+      if (allOfferingsKeys.length > 0) {
+        const firstOfferingKey = allOfferingsKeys[0];
+        const firstOffering = offerings.all[firstOfferingKey];
+        console.log(`🔄 Using first available offering: "${firstOfferingKey}"`);
+        console.log('🔍 First offering packages:', firstOffering.availablePackages.length);
+
+        if (firstOffering.availablePackages.length > 0) {
+          setPackages(firstOffering.availablePackages);
+          console.log('✅ Loaded', firstOffering.availablePackages.length, 'packages from first offering');
+          return;
+        }
+      }
+
+      console.log('❌ No offerings have any packages');
       return;
     }
 
     const availablePackages = offerings.current.availablePackages;
+    console.log('🔍 Current offering identifier:', offerings.current.identifier);
+    console.log('🔍 Available packages count:', availablePackages.length);
+
+    if (availablePackages.length === 0) {
+      console.log('❌ Current offering has 0 packages');
+      console.log('🔍 Checking all offerings for packages...');
+
+      Object.keys(offerings.all).forEach(key => {
+        const offering = offerings.all[key];
+        console.log(`   - Offering "${key}": ${offering.availablePackages.length} packages`);
+      });
+    }
+
     setPackages(availablePackages);
     console.log('✅ Loaded', availablePackages.length, 'packages from RevenueCat');
     availablePackages.forEach((pkg, index) => {
-      console.log(`📦 Package ${index + 1}:`, pkg.identifier, pkg.product.identifier);
+      console.log(`📦 Package ${index + 1}:`, pkg.identifier, pkg.product.identifier, pkg.product.priceString);
     });
   };
 
