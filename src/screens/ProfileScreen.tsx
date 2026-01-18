@@ -55,7 +55,10 @@ export default function ProfileScreen({ navigation }: Props) {
         </Text>
         <TouchableOpacity
           style={styles.guestLoginButton}
-          onPress={() => navigation.getParent()?.navigate('Login' as never)}
+          onPress={() => {
+            // Log out of guest mode, which will automatically show Login screen
+            logout();
+          }}
         >
           <Text style={styles.guestLoginButtonText}>Go to Login</Text>
         </TouchableOpacity>
