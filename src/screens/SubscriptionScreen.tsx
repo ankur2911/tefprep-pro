@@ -27,6 +27,7 @@ export default function SubscriptionScreen({ navigation }: Props) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   // Refresh subscription data and load packages when screen comes into focus
   useFocusEffect(
@@ -36,15 +37,40 @@ export default function SubscriptionScreen({ navigation }: Props) {
     }, [offerings])
   );
 
+  // Set timeout for loading offerings
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (packages.length === 0) {
+        console.log('⏰ Timeout waiting for offerings');
+        setLoadingTimeout(true);
+      }
+    }, 10000); // 10 seconds
+
+    return () => clearTimeout(timer);
+  }, [packages]);
+
   const loadPackages = () => {
+    console.log('🔍 loadPackages called');
+    console.log('🔍 offerings:', offerings);
+    console.log('🔍 offerings?.current:', offerings?.current);
+
+    if (!offerings) {
+      console.log('❌ No offerings object available');
+      return;
+    }
+
     if (!offerings?.current) {
-      console.log('No offerings available yet');
+      console.log('❌ No current offering available');
+      console.log('🔍 All offerings:', Object.keys(offerings.all));
       return;
     }
 
     const availablePackages = offerings.current.availablePackages;
     setPackages(availablePackages);
-    console.log('Loaded', availablePackages.length, 'packages from RevenueCat');
+    console.log('✅ Loaded', availablePackages.length, 'packages from RevenueCat');
+    availablePackages.forEach((pkg, index) => {
+      console.log(`📦 Package ${index + 1}:`, pkg.identifier, pkg.product.identifier);
+    });
   };
 
   const getPackageDetails = (pkg: PurchasesPackage) => {
@@ -288,6 +314,26 @@ export default function SubscriptionScreen({ navigation }: Props) {
                 </View>
               );
             })
+          ) : loadingTimeout || !offerings ? (
+            <View style={styles.loadingPackages}>
+              <Text style={styles.errorIcon}>⚠️</Text>
+              <Text style={styles.errorTitle}>Unable to Load Plans</Text>
+              <Text style={styles.errorText}>
+                {!offerings
+                  ? 'Subscription service is initializing. Please try again in a moment.'
+                  : 'We couldn\'t load the subscription plans. Please check your internet connection and try again.'}
+              </Text>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={() => {
+                  setLoadingTimeout(false);
+                  refreshSubscription();
+                  loadPackages();
+                }}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             <View style={styles.loadingPackages}>
               <ActivityIndicator size="large" color={Colors.primary} />
@@ -438,6 +484,35 @@ const styles = StyleSheet.create({
   loadingPackagesText: {
     fontSize: 16,
     color: Colors.textSecondary,
+  },
+  errorIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  retryButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: Colors.textInverse,
+    fontSize: 16,
+    fontWeight: '600',
   },
   planCard: {
     backgroundColor: Colors.surface,
