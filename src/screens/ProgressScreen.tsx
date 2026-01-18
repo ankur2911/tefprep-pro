@@ -20,7 +20,7 @@ type Props = {
 };
 
 export default function ProgressScreen({ navigation }: Props) {
-  const { user, guestMode } = useAuth();
+  const { user, guestMode, logout } = useAuth();
   const [attempts, setAttempts] = useState<TestAttempt[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,7 +75,10 @@ export default function ProgressScreen({ navigation }: Props) {
         </Text>
         <TouchableOpacity
           style={styles.loginButton}
-          onPress={() => navigation.getParent()?.navigate('Login' as never)}
+          onPress={() => {
+            // Log out of guest mode, which will automatically show Login screen
+            logout();
+          }}
         >
           <Text style={styles.loginButtonText}>Go to Login</Text>
         </TouchableOpacity>
