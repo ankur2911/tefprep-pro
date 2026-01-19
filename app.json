@@ -34,7 +34,7 @@
         "backgroundColor": "#5B21B6"
       },
       "package": "com.tefprep.pro",
-      "versionCode": 3,
+      "versionCode": 4,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
