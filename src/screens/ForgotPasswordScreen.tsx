@@ -105,7 +105,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
           [{ text: 'OK' }]
         );
       } else {
-        Alert.alert('Error', `Failed to send reset email: ${error.message}`);
+        Alert.alert('Error', 'Failed to send reset email. Please try again or contact support if the problem persists.');
       }
     } finally {
       setLoading(false);
