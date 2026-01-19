@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Linking,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +22,33 @@ export default function ProfileScreen({ navigation }: Props) {
   const { user, logout, guestMode } = useAuth();
   const { subscription, hasActiveSubscription } = useSubscription();
   const { colors } = useTheme();
+
+  const handleContactSupport = async () => {
+    const email = 'akmgcorp@gmail.com';
+    const subject = 'TEFPrep Pro - Support Request';
+    const body = 'Hi, I need help with...\n\n';
+
+    const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    try {
+      const canOpen = await Linking.canOpenURL(mailtoUrl);
+      if (canOpen) {
+        await Linking.openURL(mailtoUrl);
+      } else {
+        Alert.alert(
+          'No Email Client',
+          'Please email us at: akmgcorp@gmail.com',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        'Could not open email client. Please email us at: akmgcorp@gmail.com',
+        [{ text: 'OK' }]
+      );
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -178,8 +206,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 { text: 'Cancel', style: 'cancel' },
                 {
                   text: 'Send Email',
-                  onPress: () =>
-                    Alert.alert('Email', 'Email client would open here in production'),
+                  onPress: handleContactSupport,
                 },
               ]
             )
