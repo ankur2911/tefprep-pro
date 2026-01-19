@@ -10,7 +10,7 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
-import { Colors } from '../utils/colors';
+import { useTheme } from '../context/ThemeContext';
 import { isAdmin } from '../utils/adminCheck';
 
 type Props = {
@@ -20,6 +20,7 @@ type Props = {
 export default function ProfileScreen({ navigation }: Props) {
   const { user, logout, guestMode } = useAuth();
   const { subscription, hasActiveSubscription } = useSubscription();
+  const { colors } = useTheme();
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -43,24 +44,24 @@ export default function ProfileScreen({ navigation }: Props) {
 
   if (!user || guestMode) {
     return (
-      <View style={styles.guestContainer}>
+      <View style={[styles.guestContainer, { backgroundColor: colors.background }]}>
         <Text style={styles.guestIcon}>👤</Text>
-        <Text style={styles.guestTitle}>
+        <Text style={[styles.guestTitle, { color: colors.textPrimary }]}>
           {guestMode ? 'Guest Mode' : 'Not Logged In'}
         </Text>
-        <Text style={styles.guestText}>
+        <Text style={[styles.guestText, { color: colors.textSecondary }]}>
           {guestMode
             ? 'Create an account or login to access your profile, track progress, and sync your data across devices'
             : 'Please log in to view your profile'}
         </Text>
         <TouchableOpacity
-          style={styles.guestLoginButton}
+          style={[styles.guestLoginButton, { backgroundColor: colors.primary }]}
           onPress={() => {
             // Log out of guest mode, which will automatically show Login screen
             logout();
           }}
         >
-          <Text style={styles.guestLoginButtonText}>Go to Login</Text>
+          <Text style={[styles.guestLoginButtonText, { color: colors.textInverse }]}>Go to Login</Text>
         </TouchableOpacity>
       </View>
     );
@@ -73,14 +74,14 @@ export default function ProfileScreen({ navigation }: Props) {
   const userIsAdmin = isAdmin(user?.email);
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{getInitials(user.email || 'U')}</Text>
+          <Text style={[styles.avatarText, { color: colors.primary }]}>{getInitials(user.email || 'U')}</Text>
         </View>
         <Text style={styles.email}>{user.email}</Text>
         {hasActiveSubscription ? (
-          <View style={styles.premiumBadge}>
+          <View style={[styles.premiumBadge, { backgroundColor: colors.accent }]}>
             <Text style={styles.premiumText}>Premium Member</Text>
           </View>
         ) : (
@@ -91,65 +92,65 @@ export default function ProfileScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Subscription</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Subscription</Text>
         <TouchableOpacity
-          style={styles.menuItem}
+          style={[styles.menuItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
           onPress={() => navigation.navigate('Subscription')}
         >
-          <Text style={styles.menuItemText}>
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
             {hasActiveSubscription ? 'Manage Subscription' : 'Upgrade to Premium'}
           </Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Account</Text>
 
         <TouchableOpacity
-          style={styles.menuItem}
+          style={[styles.menuItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
           onPress={() => navigation.navigate('ProgressTab')}
         >
-          <Text style={styles.menuItemText}>Test History</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Test History</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.menuItem}
+          style={[styles.menuItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
           onPress={() => navigation.navigate('Settings')}
         >
-          <Text style={styles.menuItemText}>Settings</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Settings</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
       </View>
 
       {userIsAdmin && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Developer Tools</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Developer Tools</Text>
 
           <TouchableOpacity
-            style={styles.menuItem}
+            style={[styles.menuItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
             onPress={() => navigation.navigate('AdminDashboard')}
           >
-            <Text style={styles.menuItemText}>🎛️ Admin Dashboard</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
+            <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>🎛️ Admin Dashboard</Text>
+            <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.menuItem}
+            style={[styles.menuItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
             onPress={() => navigation.navigate('Admin')}
           >
-            <Text style={styles.menuItemText}>🛠️ Firebase Data Tools</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
+            <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>🛠️ Firebase Data Tools</Text>
+            <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
           </TouchableOpacity>
         </View>
       )}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Support</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Support</Text>
 
         <TouchableOpacity
-          style={styles.menuItem}
+          style={[styles.menuItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
           onPress={() =>
             Alert.alert(
               'Help & FAQ',
@@ -163,12 +164,12 @@ export default function ProfileScreen({ navigation }: Props) {
             )
           }
         >
-          <Text style={styles.menuItemText}>Help & FAQ</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Help & FAQ</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.menuItem}
+          style={[styles.menuItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
           onPress={() =>
             Alert.alert(
               'Contact Support',
@@ -184,12 +185,12 @@ export default function ProfileScreen({ navigation }: Props) {
             )
           }
         >
-          <Text style={styles.menuItemText}>Contact Support</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Contact Support</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.menuItem}
+          style={[styles.menuItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}
           onPress={() =>
             Alert.alert(
               'About TEFPrep Pro',
@@ -200,8 +201,8 @@ export default function ProfileScreen({ navigation }: Props) {
             )
           }
         >
-          <Text style={styles.menuItemText}>About TEFPrep Pro</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>About TEFPrep Pro</Text>
+          <Text style={[styles.menuItemArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
       </View>
 
@@ -210,7 +211,7 @@ export default function ProfileScreen({ navigation }: Props) {
       </TouchableOpacity>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Version 1.0.0</Text>
+        <Text style={[styles.footerText, { color: colors.textSecondary }]}>Version 1.0.0</Text>
       </View>
     </ScrollView>
   );
@@ -219,16 +220,13 @@ export default function ProfileScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   notLoggedIn: {
     textAlign: 'center',
     marginTop: 40,
     fontSize: 16,
-    color: Colors.textSecondary,
   },
   header: {
-    backgroundColor: Colors.primary,
     padding: 30,
     alignItems: 'center',
     paddingTop: 20,
@@ -245,7 +243,6 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: Colors.primary,
   },
   email: {
     fontSize: 18,
@@ -253,7 +250,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   premiumBadge: {
-    backgroundColor: Colors.accent,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -280,7 +276,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: Colors.textSecondary,
     marginLeft: 20,
     marginBottom: 8,
     textTransform: 'uppercase',
@@ -291,17 +286,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 18,
-    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   menuItemText: {
     fontSize: 16,
-    color: Colors.textPrimary,
   },
   menuItemArrow: {
     fontSize: 24,
-    color: Colors.textSecondary,
   },
   logoutButton: {
     backgroundColor: '#EF4444',
@@ -322,14 +313,12 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: Colors.textSecondary,
   },
   guestContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
-    backgroundColor: Colors.background,
   },
   guestIcon: {
     fontSize: 80,
@@ -338,25 +327,21 @@ const styles = StyleSheet.create({
   guestTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.textPrimary,
     marginBottom: 12,
     textAlign: 'center',
   },
   guestText: {
     fontSize: 16,
-    color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: 30,
     lineHeight: 24,
   },
   guestLoginButton: {
-    backgroundColor: Colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 12,
   },
   guestLoginButtonText: {
-    color: Colors.textInverse,
     fontSize: 16,
     fontWeight: '600',
   },

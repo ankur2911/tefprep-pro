@@ -1,21 +1,23 @@
-// TEFPrep Pro - Modern Minimal Color Palette
-export const Colors = {
+// TEFPrep Pro - Theme Colors
+
+// Light Theme
+export const LightColors = {
   // Primary colors
-  primary: '#5B21B6', // Purple - professional and educational
+  primary: '#5B21B6',
   primaryLight: '#7C3AED',
   primaryDark: '#4C1D95',
 
   // Secondary colors
-  secondary: '#3B82F6', // Blue - trust and learning
+  secondary: '#3B82F6',
   secondaryLight: '#60A5FA',
   secondaryDark: '#2563EB',
 
   // Accent colors
-  accent: '#3B82F6', // Blue accent
-  success: '#10B981', // Green - correct answers
-  warning: '#F59E0B', // Orange - warnings
-  error: '#EF4444', // Red - incorrect answers
-  info: '#06B6D4', // Cyan - information
+  accent: '#3B82F6',
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  info: '#06B6D4',
 
   // Neutral colors
   background: '#F9FAFB',
@@ -34,6 +36,46 @@ export const Colors = {
   disabled: '#D1D5DB',
   overlay: 'rgba(0, 0, 0, 0.5)',
 };
+
+// Dark Theme
+export const DarkColors = {
+  // Primary colors
+  primary: '#7C3AED',
+  primaryLight: '#8B5CF6',
+  primaryDark: '#6D28D9',
+
+  // Secondary colors
+  secondary: '#3B82F6',
+  secondaryLight: '#60A5FA',
+  secondaryDark: '#2563EB',
+
+  // Accent colors
+  accent: '#3B82F6',
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  info: '#06B6D4',
+
+  // Neutral colors
+  background: '#0F172A', // Dark blue-gray
+  surface: '#1E293B', // Lighter dark blue-gray
+  border: '#334155',
+
+  // Text colors
+  textPrimary: '#F1F5F9',
+  textSecondary: '#94A3B8',
+  textDisabled: '#64748B',
+  textInverse: '#0F172A',
+
+  // UI colors
+  cardBackground: '#1E293B',
+  inputBackground: '#334155',
+  disabled: '#475569',
+  overlay: 'rgba(0, 0, 0, 0.7)',
+};
+
+// Default export for backwards compatibility
+export const Colors = LightColors;
 
 export const Gradients = {
   primary: ['#5B21B6', '#7C3AED'],
