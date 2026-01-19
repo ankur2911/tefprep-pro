@@ -5,226 +5,140 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
-  Switch,
-  ActivityIndicator,
-  TextInput,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { doc, getDoc } from 'firebase/firestore';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../config/firebase';
-import { Colors } from '../utils/colors';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
 };
 
 export default function SettingsScreen({ navigation }: Props) {
-  const { user } = useAuth();
-  const [soundEnabled, setSoundEnabled] = React.useState(true);
-  const [firstName, setFirstName] = React.useState('');
-  const [lastName, setLastName] = React.useState('');
-  const [loading, setLoading] = React.useState(true);
+  const { theme, isDarkMode, setTheme, colors } = useTheme();
 
-  // Check if user signed in with email/password (not SSO)
-  const hasPasswordProvider = user?.providerData.some(
-    (provider) => provider.providerId === 'password'
-  );
-
-  // Load user data and preferences
-  React.useEffect(() => {
-    loadUserData();
-    loadSoundPreference();
-  }, []);
-
-  const loadUserData = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userRef);
-
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        setFirstName(data.firstName || '');
-        setLastName(data.lastName || '');
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleThemeChange = (value: 'light' | 'dark' | 'system') => {
+    setTheme(value);
   };
-
-  const loadSoundPreference = async () => {
-    try {
-      const value = await AsyncStorage.getItem('soundEffectsEnabled');
-      if (value !== null) {
-        setSoundEnabled(value === 'true');
-      }
-    } catch (error) {
-      console.error('Error loading sound preference:', error);
-    }
-  };
-
-  const handleSoundToggle = async (value: boolean) => {
-    setSoundEnabled(value);
-    try {
-      await AsyncStorage.setItem('soundEffectsEnabled', value.toString());
-    } catch (error) {
-      console.error('Error saving sound preference:', error);
-    }
-  };
-
-  const handleChangePassword = () => {
-    if (!user) return;
-    navigation.navigate('ChangePassword');
-  };
-
-  const handleClearCache = () => {
-    Alert.alert(
-      'Clear Cache',
-      'This will clear temporary data and may improve performance. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: () => {
-            // In production, this would clear AsyncStorage cache
-            Alert.alert('Success', 'Cache cleared successfully');
-          },
-        },
-      ]
-    );
-  };
-
-  const handlePrivacyPolicy = () => {
-    Alert.alert(
-      'Privacy Policy',
-      'TEFPrep Pro Privacy Policy\n\n' +
-        'We collect and store:\n' +
-        '• Your email address\n' +
-        '• Test scores and progress\n' +
-        '• Subscription status\n\n' +
-        'We do NOT:\n' +
-        '• Sell your data\n' +
-        '• Share with third parties\n' +
-        '• Track you outside the app\n\n' +
-        'Your data is encrypted and stored securely on Firebase servers.'
-    );
-  };
-
-  const handleTerms = () => {
-    Alert.alert(
-      'Terms of Service',
-      'TEFPrep Pro Terms of Service\n\n' +
-        '1. You may use this app for personal test preparation\n' +
-        '2. Premium subscription required for premium content\n' +
-        '3. Subscriptions renew automatically unless canceled\n' +
-        '4. No refunds after subscription period starts\n' +
-        '5. We reserve the right to modify content\n\n' +
-        'By using this app, you agree to these terms.'
-    );
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
 
   return (
-    <ScrollView style={styles.container}>
-      {user && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Information</Text>
-
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>First Name</Text>
-            <Text style={styles.infoValue}>{firstName || 'Not set'}</Text>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Last Name</Text>
-            <Text style={styles.infoValue}>{lastName || 'Not set'}</Text>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Email</Text>
-            <Text style={styles.infoValue}>{user.email}</Text>
-          </View>
-
-          {hasPasswordProvider && (
-            <TouchableOpacity style={styles.menuItem} onPress={handleChangePassword}>
-              <Text style={styles.menuItemText}>Change Password</Text>
-              <Text style={styles.menuItemArrow}>›</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Preferences</Text>
-
-        <View style={styles.settingItem}>
-          <View style={styles.settingText}>
-            <Text style={styles.settingLabel}>Sound Effects</Text>
-            <Text style={styles.settingDescription}>
-              Play sounds for correct/incorrect answers in test results
-            </Text>
-          </View>
-          <Switch
-            value={soundEnabled}
-            onValueChange={handleSoundToggle}
-            trackColor={{ false: Colors.border, true: Colors.primary }}
-            thumbColor={soundEnabled ? Colors.accent : Colors.surface}
-          />
-        </View>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.header}>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Settings</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+          Customize your app experience
+        </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Data & Storage</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          APPEARANCE
+        </Text>
 
-        <TouchableOpacity style={styles.menuItem} onPress={handleClearCache}>
-          <Text style={styles.menuItemText}>Clear Cache</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
-        </TouchableOpacity>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <Text style={[styles.settingTitle, { color: colors.textPrimary }]}>
+                Theme
+              </Text>
+              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                Choose your preferred theme
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.themeOption,
+              theme === 'system' && { backgroundColor: colors.primary + '15', borderColor: colors.primary },
+              { borderColor: colors.border },
+            ]}
+            onPress={() => handleThemeChange('system')}
+          >
+            <View style={styles.themeOptionContent}>
+              <Text style={[styles.themeOptionIcon, theme === 'system' && { color: colors.primary }]}>
+                📱
+              </Text>
+              <View style={styles.themeOptionText}>
+                <Text style={[styles.themeOptionTitle, { color: colors.textPrimary }]}>
+                  System
+                </Text>
+                <Text style={[styles.themeOptionSubtitle, { color: colors.textSecondary }]}>
+                  Follow device settings
+                </Text>
+              </View>
+            </View>
+            {theme === 'system' && (
+              <View style={[styles.checkmark, { backgroundColor: colors.primary }]}>
+                <Text style={styles.checkmarkText}>✓</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.themeOption,
+              theme === 'light' && { backgroundColor: colors.primary + '15', borderColor: colors.primary },
+              { borderColor: colors.border },
+            ]}
+            onPress={() => handleThemeChange('light')}
+          >
+            <View style={styles.themeOptionContent}>
+              <Text style={[styles.themeOptionIcon, theme === 'light' && { color: colors.primary }]}>
+                ☀️
+              </Text>
+              <View style={styles.themeOptionText}>
+                <Text style={[styles.themeOptionTitle, { color: colors.textPrimary }]}>
+                  Light
+                </Text>
+                <Text style={[styles.themeOptionSubtitle, { color: colors.textSecondary }]}>
+                  Bright and clear
+                </Text>
+              </View>
+            </View>
+            {theme === 'light' && (
+              <View style={[styles.checkmark, { backgroundColor: colors.primary }]}>
+                <Text style={styles.checkmarkText}>✓</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.themeOption,
+              theme === 'dark' && { backgroundColor: colors.primary + '15', borderColor: colors.primary },
+              { borderColor: colors.border },
+            ]}
+            onPress={() => handleThemeChange('dark')}
+          >
+            <View style={styles.themeOptionContent}>
+              <Text style={[styles.themeOptionIcon, theme === 'dark' && { color: colors.primary }]}>
+                🌙
+              </Text>
+              <View style={styles.themeOptionText}>
+                <Text style={[styles.themeOptionTitle, { color: colors.textPrimary }]}>
+                  Dark
+                </Text>
+                <Text style={[styles.themeOptionSubtitle, { color: colors.textSecondary }]}>
+                  Easy on the eyes
+                </Text>
+              </View>
+            </View>
+            {theme === 'dark' && (
+              <View style={[styles.checkmark, { backgroundColor: colors.primary }]}>
+                <Text style={styles.checkmarkText}>✓</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Legal</Text>
-
-        <TouchableOpacity style={styles.menuItem} onPress={handlePrivacyPolicy}>
-          <Text style={styles.menuItemText}>Privacy Policy</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem} onPress={handleTerms}>
-          <Text style={styles.menuItemText}>Terms of Service</Text>
-          <Text style={styles.menuItemArrow}>›</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App Info</Text>
-
-        <View style={styles.infoItem}>
-          <Text style={styles.infoLabel}>Version</Text>
-          <Text style={styles.infoValue}>1.0.0</Text>
-        </View>
-
-        <View style={styles.infoItem}>
-          <Text style={styles.infoLabel}>Build</Text>
-          <Text style={styles.infoValue}>Development</Text>
-        </View>
+      <View style={[styles.infoCard, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }]}>
+        <Text style={[styles.infoTitle, { color: colors.primary }]}>💡 About Themes</Text>
+        <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+          • <Text style={{ fontWeight: '600' }}>System</Text> - Automatically switches between light and dark based on your device settings{'\n'}
+          • <Text style={{ fontWeight: '600' }}>Light</Text> - Always uses light mode{'\n'}
+          • <Text style={{ fontWeight: '600' }}>Dark</Text> - Always uses dark mode
+        </Text>
       </View>
     </ScrollView>
   );
@@ -233,81 +147,103 @@ export default function SettingsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.background,
+  header: {
+    padding: 20,
+    paddingTop: 16,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    marginTop: 4,
   },
   section: {
-    marginTop: 20,
+    marginTop: 8,
+    paddingHorizontal: 20,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.textSecondary,
-    marginLeft: 20,
-    marginBottom: 8,
-    textTransform: 'uppercase',
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 12,
     letterSpacing: 0.5,
   },
+  card: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
   settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 18,
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    marginBottom: 16,
   },
-  settingText: {
+  settingInfo: {
     flex: 1,
-    marginRight: 16,
   },
-  settingLabel: {
+  settingTitle: {
     fontSize: 16,
-    color: Colors.textPrimary,
+    fontWeight: '600',
     marginBottom: 4,
   },
   settingDescription: {
-    fontSize: 13,
-    color: Colors.textSecondary,
+    fontSize: 14,
   },
-  menuItem: {
+  themeOption: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 18,
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    marginBottom: 12,
   },
-  menuItemText: {
-    fontSize: 16,
-    color: Colors.textPrimary,
-  },
-  menuItemArrow: {
-    fontSize: 24,
-    color: Colors.textSecondary,
-  },
-  infoItem: {
+  themeOptionContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 18,
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    flex: 1,
   },
-  infoLabel: {
-    fontSize: 16,
-    color: Colors.textSecondary,
+  themeOptionIcon: {
+    fontSize: 32,
+    marginRight: 16,
   },
-  infoValue: {
+  themeOptionText: {
+    flex: 1,
+  },
+  themeOptionTitle: {
     fontSize: 16,
-    color: Colors.textPrimary,
     fontWeight: '600',
+    marginBottom: 2,
+  },
+  themeOptionSubtitle: {
+    fontSize: 13,
+  },
+  checkmark: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkmarkText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  infoCard: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    lineHeight: 22,
   },
 });
