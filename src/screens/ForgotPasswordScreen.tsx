@@ -40,53 +40,11 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       return;
     }
 
-    console.log('✅ Email validation passed, checking sign-in methods...');
+    console.log('✅ Email validation passed, sending reset email...');
     setLoading(true);
     try {
-      // Check what sign-in methods are associated with this email
-      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-      console.log('Sign-in methods for', email, ':', signInMethods);
-
-      // If no sign-in methods found, user doesn't exist
-      if (signInMethods.length === 0) {
-        console.log('⚠️ No account found with this email');
-        setLoading(false);
-        Alert.alert(
-          'Account Not Found',
-          `No account exists with the email ${email}.\n\nPlease check the email address or sign up for a new account.`,
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.goBack(),
-            },
-          ]
-        );
-        return;
-      }
-
-      // Check if user signed in with SSO (Google or Apple)
-      const isSSOUser = signInMethods.some(method =>
-        method === 'google.com' || method === 'apple.com'
-      );
-
-      if (isSSOUser) {
-        console.log('⚠️ User signed in with SSO, cannot reset password');
-        const ssoProvider = signInMethods.includes('google.com') ? 'Google' : 'Apple';
-        setLoading(false);
-        Alert.alert(
-          'SSO Account',
-          `This account uses ${ssoProvider} Sign-In. Your password is managed by ${ssoProvider}.\n\nTo reset your password, please visit your ${ssoProvider} account settings.`,
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.goBack(),
-            },
-          ]
-        );
-        return;
-      }
-
-      // User has email/password auth, send reset email
+      // Try to send password reset email directly
+      // Firebase will handle the error if user doesn't exist or uses SSO
       await sendPasswordResetEmail(auth, email);
       console.log('✅ Password reset email sent successfully to:', email);
       setEmailSent(true);
@@ -105,14 +63,26 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       console.error('Error code:', error.code);
       console.error('Error message:', error.message);
 
-      if (error.code === 'auth/user-not-found') {
-        Alert.alert('Error', 'No account found with this email address');
-      } else if (error.code === 'auth/invalid-email') {
-        Alert.alert('Error', 'Invalid email address');
+      // For security reasons, Firebase may not reveal if email exists
+      // We show a generic message for most errors
+      if (error.code === 'auth/invalid-email') {
+        Alert.alert('Error', 'Invalid email address format');
       } else if (error.code === 'auth/too-many-requests') {
-        Alert.alert('Error', 'Too many requests. Please try again later.');
+        Alert.alert('Error', 'Too many requests. Please try again in a few minutes.');
+      } else if (error.code === 'auth/user-not-found') {
+        // Show generic message for security
+        Alert.alert(
+          'Check Your Email',
+          'If an account exists with this email, you will receive a password reset link.\n\nPlease check your inbox and spam folder.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
       } else {
-        Alert.alert('Error', `Failed to send reset email: ${error.message}`);
+        // Generic error - still show success message for security
+        Alert.alert(
+          'Check Your Email',
+          'If an account exists with this email, you will receive a password reset link.\n\nPlease check your inbox and spam folder.\n\nNote: If you signed up with Google or Apple, please use that method to sign in.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
       }
     } finally {
       setLoading(false);
