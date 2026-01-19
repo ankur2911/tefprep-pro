@@ -89,7 +89,27 @@ export default function LoginScreen({ navigation }: Props) {
       }, 500);
     } catch (error: any) {
       console.error('❌ Authentication error:', error);
-      Alert.alert('Error', error.message || 'Authentication failed');
+
+      // Show user-friendly error messages instead of Firebase technical errors
+      let errorMessage = 'Authentication failed. Please try again.';
+
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already registered. Please login instead or use a different email.';
+      } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        errorMessage = 'Incorrect email or password. Please try again.';
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email. Please sign up first.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address format.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak. Please use at least 6 characters.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection.';
+      }
+
+      Alert.alert('Error', errorMessage);
       setLoading(false);
     }
   };

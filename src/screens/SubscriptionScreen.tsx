@@ -188,10 +188,10 @@ export default function SubscriptionScreen({ navigation }: Props) {
                 return;
               }
 
-              // Generic error
+              // Generic error - show user-friendly message
               Alert.alert(
                 'Purchase Failed',
-                error.message || 'Failed to complete purchase. Please try again.'
+                'We couldn\'t complete your purchase. Please try again or contact support if the problem persists.'
               );
             } finally {
               setLoading(false);
