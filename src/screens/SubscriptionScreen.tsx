@@ -99,18 +99,52 @@ export default function SubscriptionScreen({ navigation }: Props) {
     setPackages(availablePackages);
     console.log('✅ Loaded', availablePackages.length, 'packages from RevenueCat');
     availablePackages.forEach((pkg, index) => {
-      console.log(`📦 Package ${index + 1}:`, pkg.identifier, pkg.product.identifier, pkg.product.priceString);
+      console.log(`📦 Package ${index + 1}:`, pkg.identifier, pkg.product.identifier, pkg.product.priceString, '- Period:', pkg.product.subscriptionPeriod);
     });
+  };
+
+  // Format subscription period from ISO 8601 duration format
+  const formatSubscriptionPeriod = (subscriptionPeriod?: string): string => {
+    if (!subscriptionPeriod) return '/month'; // Default fallback
+
+    // ISO 8601 duration format: P1Y = 1 year, P1M = 1 month, P1W = 1 week, P1D = 1 day, PT5M = 5 minutes
+    const match = subscriptionPeriod.match(/P(\d+)([YMWD])|PT(\d+)M/);
+
+    if (!match) return '/period';
+
+    if (match[3]) {
+      // Time-based (PT5M = 5 minutes) - testing period
+      return `/${match[3]} minutes`;
+    }
+
+    const value = parseInt(match[1]);
+    const unit = match[2];
+
+    switch (unit) {
+      case 'Y':
+        return value === 1 ? '/year' : `/${value} years`;
+      case 'M':
+        return value === 1 ? '/month' : `/${value} months`;
+      case 'W':
+        return value === 1 ? '/week' : `/${value} weeks`;
+      case 'D':
+        return value === 1 ? '/day' : `/${value} days`;
+      default:
+        return '/period';
+    }
   };
 
   const getPackageDetails = (pkg: PurchasesPackage) => {
     const isMonthly = pkg.identifier === 'monthly' || pkg.product.identifier.includes('monthly');
 
+    // Get actual subscription period from product
+    const period = formatSubscriptionPeriod(pkg.product.subscriptionPeriod);
+
     return {
       id: pkg.identifier,
       name: isMonthly ? 'Monthly Plan' : 'Yearly Plan',
       price: pkg.product.priceString,
-      period: isMonthly ? '/month' : '/year',
+      period: period,
       savings: isMonthly ? null : 'Save $20/year',
       features: isMonthly
         ? [
