@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(eas:*)",
+      "Bash(timeout 120 bash -c 'while true; do clear; echo \"\"=== iOS Build Status - $\\(date +\"\"%H:%M:%S\"\"\\) ===\"\"; cd \"\"C:\\\\Users\\\\sharmaanku\\\\EcommerceApp\"\" && eas build:list --platform ios --limit 1 | grep -E \"\"\\(Status|Finished at|Application Archive\\)\"\"; echo \"\"\"\"; echo \"\"Checking again in 30 seconds... \\(Ctrl+C to stop\\)\"\"; sleep 30; done')",
+      "WebFetch(domain:expo.dev)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)"
+    ]
+  }
+}
