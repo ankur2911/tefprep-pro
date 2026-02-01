@@ -5,7 +5,10 @@ import Purchases, {
   LOG_LEVEL,
 } from 'react-native-purchases';
 import { Platform } from 'react-native';
-import { REVENUECAT_API_KEY_APPLE, REVENUECAT_API_KEY_GOOGLE } from '@env';
+
+// Use process.env for production builds (EAS) and @env for development
+const REVENUECAT_API_KEY_APPLE = process.env.REVENUECAT_API_KEY_APPLE || '';
+const REVENUECAT_API_KEY_GOOGLE = process.env.REVENUECAT_API_KEY_GOOGLE || '';
 
 // Entitlement identifier (must match RevenueCat dashboard configuration)
 const ENTITLEMENT_ID = 'premium_access';
