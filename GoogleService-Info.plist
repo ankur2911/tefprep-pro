@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>136999807438-r15ghmqrcssl3hvtr963f7dphslgtejj.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.136999807438-r15ghmqrcssl3hvtr963f7dphslgtejj</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>136999807438-184ctqna4m02aimrpdq0tej115a5am8b.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyDcnU-mbTDqwKqUmaqo_8Om28Mc71yJFKA</string>
+	<key>GCM_SENDER_ID</key>
+	<string>136999807438</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.tefprep.pro</string>
+	<key>PROJECT_ID</key>
+	<string>tefprep-pro</string>
+	<key>STORAGE_BUCKET</key>
+	<string>tefprep-pro.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:136999807438:ios:a887114c819c9c1eb6239f</string>
+</dict>
+</plist>
