@@ -49,7 +49,16 @@
     "extra": {
       "eas": {
         "projectId": "6a0545e4-4938-4d34-b011-0318c78544bb"
-      }
+      },
+      "REVENUECAT_API_KEY_GOOGLE": "goog_wfPOgySCOwvHBEZDfEzjYvJARDt",
+      "REVENUECAT_API_KEY_APPLE": "appl_JDpyVfROAOeLpTCySTLhuabQLZG",
+      "FIREBASE_API_KEY": "AIzaSyCIZ5IsEMJKdr5Cc3QKrXhOrTkcr3nvSQc",
+      "FIREBASE_AUTH_DOMAIN": "tefprep-pro.firebaseapp.com",
+      "FIREBASE_PROJECT_ID": "tefprep-pro",
+      "FIREBASE_STORAGE_BUCKET": "tefprep-pro.firebasestorage.app",
+      "FIREBASE_MESSAGING_SENDER_ID": "136999807438",
+      "FIREBASE_APP_ID": "1:136999807438:web:f282a51b9736ab7cb6239f",
+      "GOOGLE_WEB_CLIENT_ID": "136999807438-ie7ct8uc4l7ock0c6roorop68em09dd4.apps.googleusercontent.com"
     },
     "plugins": [
       "expo-build-properties"

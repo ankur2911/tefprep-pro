@@ -5,10 +5,11 @@ import Purchases, {
   LOG_LEVEL,
 } from 'react-native-purchases';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-// Use process.env for production builds (EAS) and @env for development
-const REVENUECAT_API_KEY_APPLE = process.env.REVENUECAT_API_KEY_APPLE || '';
-const REVENUECAT_API_KEY_GOOGLE = process.env.REVENUECAT_API_KEY_GOOGLE || '';
+// Use Constants.expoConfig.extra for runtime environment variables
+const REVENUECAT_API_KEY_APPLE = Constants.expoConfig?.extra?.REVENUECAT_API_KEY_APPLE || '';
+const REVENUECAT_API_KEY_GOOGLE = Constants.expoConfig?.extra?.REVENUECAT_API_KEY_GOOGLE || '';
 
 // Entitlement identifier (must match RevenueCat dashboard configuration)
 const ENTITLEMENT_ID = 'premium_access';
