@@ -15,9 +15,10 @@ import appleAuth from '@invertase/react-native-apple-authentication';
 import { Platform } from 'react-native';
 import { auth, db } from '../config/firebase';
 import { revenueCatService } from '../services/revenueCatService';
+import Constants from 'expo-constants';
 
-// Use process.env for production builds (EAS) and fallback for development
-const GOOGLE_WEB_CLIENT_ID = process.env.GOOGLE_WEB_CLIENT_ID || '';
+// Use Constants.expoConfig.extra for runtime environment variables
+const GOOGLE_WEB_CLIENT_ID = Constants.expoConfig?.extra?.GOOGLE_WEB_CLIENT_ID || '';
 
 interface AuthContextType {
   user: User | null;
