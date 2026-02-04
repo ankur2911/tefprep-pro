@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { Paper, Question } from '../types';
@@ -230,7 +231,7 @@ export default function TestScreen({ navigation, route }: Props) {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleQuit} style={styles.quitButton}>
           <Text style={styles.quitButtonText}>Quit</Text>
@@ -294,7 +295,7 @@ export default function TestScreen({ navigation, route }: Props) {
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
