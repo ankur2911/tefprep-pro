@@ -165,7 +165,7 @@ export default function LoginScreen({ navigation }: Props) {
       console.error('❌ Apple Sign-In error:', error);
       if (error.code !== '1001') {
         // Don't show error if user cancelled (code 1001)
-        Alert.alert('Error', 'Failed to sign in with Apple. Please try again.');
+        Alert.alert('Apple Error', `Code: ${error.code}\n${error.message}`);
       }
       setSsoLoading(false);
     }

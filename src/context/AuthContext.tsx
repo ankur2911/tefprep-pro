@@ -14,6 +14,8 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import appleAuth from '@invertase/react-native-apple-authentication';
 import { Platform } from 'react-native';
 import { auth, db } from '../config/firebase';
+
+import { sha256, generateNonce } from '../utils/crypto';
 import { revenueCatService } from '../services/revenueCatService';
 import Constants from 'expo-constants';
 
@@ -231,28 +233,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
-      // Start Apple authentication request
+      console.log('🔵 Starting Apple Sign-In...');
+
+      // Generate a cryptographic nonce for Apple Sign-In security
+      const rawNonce = generateNonce(32);
+      const hashedNonce = sha256(rawNonce);
+
       const appleAuthRequestResponse = await appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
         requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+        requestedNonce: hashedNonce,
       });
 
       // Ensure Apple returned a user identityToken
       if (!appleAuthRequestResponse.identityToken) {
-        throw new Error('Apple Sign-In failed - no identify token returned');
+        throw new Error('Apple Sign-In failed - no identity token returned');
       }
 
-      // Create a Firebase credential from the response
-      const { identityToken, nonce } = appleAuthRequestResponse;
+      console.log('✅ Apple identity token received');
+
+      // Firebase credential with nonce for secure verification
       const appleCredential = new OAuthProvider('apple.com').credential({
-        idToken: identityToken,
-        rawNonce: nonce,
+        idToken: appleAuthRequestResponse.identityToken,
+        rawNonce: rawNonce,
       });
 
       // Sign in to Firebase
       const userCredential = await signInWithCredential(auth, appleCredential);
+      console.log('✅ Signed in to Firebase via Apple:', userCredential.user.email);
 
-      // Extract name from Apple profile
+      // Extract name from Apple profile (only provided on first sign-in)
       const firstName = appleAuthRequestResponse.fullName?.givenName || '';
       const lastName = appleAuthRequestResponse.fullName?.familyName || '';
 
