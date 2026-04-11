@@ -37,6 +37,14 @@ export default function SubscriptionScreen({ navigation }: Props) {
     }, [offerings])
   );
 
+  // Re-run loadPackages whenever offerings updates in context
+  // (needed because offerings loads async and screen may already be focused)
+  useEffect(() => {
+    if (offerings) {
+      loadPackages();
+    }
+  }, [offerings]);
+
   // Set timeout for loading offerings
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -44,7 +52,7 @@ export default function SubscriptionScreen({ navigation }: Props) {
         console.log('⏰ Timeout waiting for offerings');
         setLoadingTimeout(true);
       }
-    }, 10000); // 10 seconds
+    }, 15000); // 15 seconds
 
     return () => clearTimeout(timer);
   }, [packages]);
@@ -378,21 +386,18 @@ export default function SubscriptionScreen({ navigation }: Props) {
                 </View>
               );
             })
-          ) : loadingTimeout || !offerings ? (
+          ) : loadingTimeout ? (
             <View style={styles.loadingPackages}>
               <Text style={styles.errorIcon}>⚠️</Text>
               <Text style={styles.errorTitle}>Unable to Load Plans</Text>
               <Text style={styles.errorText}>
-                {!offerings
-                  ? 'Subscription service is initializing. Please try again in a moment.'
-                  : 'We couldn\'t load the subscription plans. Please check your internet connection and try again.'}
+                We couldn't load the subscription plans. Please check your internet connection and try again.
               </Text>
               <TouchableOpacity
                 style={styles.retryButton}
                 onPress={() => {
                   setLoadingTimeout(false);
-                  refreshSubscription();
-                  loadPackages();
+                  refreshSubscription().then(() => loadPackages());
                 }}
               >
                 <Text style={styles.retryButtonText}>Retry</Text>

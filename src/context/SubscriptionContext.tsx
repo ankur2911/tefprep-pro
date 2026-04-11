@@ -185,9 +185,13 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
         // Initialize with user ID if available
         await revenueCatService.initialize(user?.uid);
 
-        // Identify user if logged in
+        // Identify user if logged in — failure here must NOT block getOfferings()
         if (user) {
-          await revenueCatService.identifyUser(user.uid);
+          try {
+            await revenueCatService.identifyUser(user.uid);
+          } catch (err) {
+            console.warn('⚠️ RevenueCat identifyUser failed - continuing to load offerings:', err);
+          }
         }
 
         // Load offerings - don't block if this fails
