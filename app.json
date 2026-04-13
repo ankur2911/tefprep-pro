@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tefprep.pro",
-      "buildNumber": "15",
+      "buildNumber": "16",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "SKAdNetworkItems": [
