@@ -15,7 +15,7 @@ import appleAuth from '@invertase/react-native-apple-authentication';
 import { Platform } from 'react-native';
 import { auth, db } from '../config/firebase';
 
-import { sha256, generateNonce } from '../utils/crypto';
+
 import { revenueCatService } from '../services/revenueCatService';
 import Constants from 'expo-constants';
 
@@ -235,14 +235,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       console.log('🔵 Starting Apple Sign-In...');
 
-      // Generate a cryptographic nonce for Apple Sign-In security
-      const rawNonce = generateNonce(32);
-      const hashedNonce = sha256(rawNonce);
-
+      // The library auto-generates a nonce, SHA-256-hashes it before sending to Apple,
+      // and returns the raw nonce in the response for us to pass to Firebase.
       const appleAuthRequestResponse = await appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
         requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
-        requestedNonce: hashedNonce,
       });
 
       // Ensure Apple returned a user identityToken
@@ -252,10 +249,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       console.log('✅ Apple identity token received');
 
-      // Firebase credential with nonce for secure verification
+      // Firebase credential: library exposes the raw nonce it used so Firebase can verify
       const appleCredential = new OAuthProvider('apple.com').credential({
         idToken: appleAuthRequestResponse.identityToken,
-        rawNonce: rawNonce,
+        rawNonce: appleAuthRequestResponse.nonce,
       });
 
       // Sign in to Firebase

@@ -246,6 +246,13 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const refreshSubscription = async () => {
     await fetchSubscription();
+    // Re-fetch offerings so SubscriptionScreen always has fresh package data
+    try {
+      const offers = await revenueCatService.getOfferings();
+      if (offers) setOfferings(offers);
+    } catch (error) {
+      console.warn('⚠️ Could not refresh offerings:', error);
+    }
   };
 
   return (
