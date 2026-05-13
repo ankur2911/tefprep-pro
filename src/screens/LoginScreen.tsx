@@ -18,7 +18,7 @@ type Props = {
 };
 
 export default function LoginScreen({ navigation }: Props) {
-  const { signIn, signUp, signInWithGoogle, signInWithApple, continueAsGuest, user } = useAuth();
+  const { signIn, signUp, signInWithGoogle, continueAsGuest, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -150,27 +150,6 @@ export default function LoginScreen({ navigation }: Props) {
     }
   };
 
-  const handleAppleSignIn = async () => {
-    console.log('🔵 Apple Sign-In button clicked!');
-    setSsoLoading(true);
-    try {
-      await signInWithApple();
-      console.log('✅ Apple Sign-In successful!');
-      setAuthSuccess(true);
-      // Keep loading state for a moment to prevent interactions, then clear
-      setTimeout(() => {
-        setSsoLoading(false);
-      }, 500);
-    } catch (error: any) {
-      console.error('❌ Apple Sign-In error:', error);
-      if (error.code !== '1001') {
-        // Don't show error if user cancelled (code 1001)
-        Alert.alert('Apple Error', `Code: ${error.code}\n${error.message}`);
-      }
-      setSsoLoading(false);
-    }
-  };
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -265,17 +244,6 @@ export default function LoginScreen({ navigation }: Props) {
                 </Text>
               </TouchableOpacity>
 
-              {Platform.OS === 'ios' && (
-                <TouchableOpacity
-                  style={[styles.ssoButton, styles.appleButton, ssoLoading && styles.buttonDisabled]}
-                  onPress={handleAppleSignIn}
-                  disabled={ssoLoading || loading}
-                >
-                  <Text style={[styles.ssoButtonText, styles.appleButtonText]}>
-                    {ssoLoading ? 'Please wait...' : ' Continue with Apple'}
-                  </Text>
-                </TouchableOpacity>
-              )}
             </>
           )}
 
@@ -400,16 +368,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
   },
-  appleButton: {
-    backgroundColor: '#000',
-    borderColor: '#000',
-  },
   ssoButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.textPrimary,
-  },
-  appleButtonText: {
-    color: '#fff',
   },
 });
