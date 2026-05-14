@@ -7,8 +7,20 @@ import {
   User,
   GoogleAuthProvider,
   signInWithCredential,
+  deleteUser,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
+import {
+  doc,
+  setDoc,
+  getDoc,
+  deleteDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  writeBatch,
+  Timestamp,
+} from 'firebase/firestore';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { auth, db } from '../config/firebase';
 
@@ -27,6 +39,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   continueAsGuest: () => void;
 }
 
@@ -148,6 +161,64 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(false);
   };
 
+  // Delete the current user's account and all associated Firestore data.
+  // Throws 'auth/requires-recent-login' if the user hasn't authenticated recently —
+  // caller should prompt user to log out and back in, then retry.
+  const deleteAccount = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error('No user is currently signed in');
+    }
+    const uid = currentUser.uid;
+
+    // Delete test_attempts for this user (chunked to stay under Firestore batch limit of 500)
+    try {
+      const attemptsQuery = query(collection(db, 'test_attempts'), where('userId', '==', uid));
+      const snapshot = await getDocs(attemptsQuery);
+      const docs = snapshot.docs;
+      for (let i = 0; i < docs.length; i += 450) {
+        const batch = writeBatch(db);
+        docs.slice(i, i + 450).forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      }
+      console.log(`✅ Deleted ${docs.length} test_attempts for ${uid}`);
+    } catch (error) {
+      console.warn('⚠️ Failed to delete test_attempts:', error);
+    }
+
+    // Delete subscriptions/{uid}
+    try {
+      await deleteDoc(doc(db, 'subscriptions', uid));
+    } catch (error) {
+      console.warn('⚠️ Failed to delete subscription doc:', error);
+    }
+
+    // Delete users/{uid}
+    try {
+      await deleteDoc(doc(db, 'users', uid));
+    } catch (error) {
+      console.warn('⚠️ Failed to delete user doc:', error);
+    }
+
+    // Logout RevenueCat (resets to anonymous user)
+    try {
+      await revenueCatService.logoutUser();
+    } catch (error) {
+      console.warn('⚠️ Failed to logout RevenueCat:', error);
+    }
+
+    // Sign out from Google if applicable (defensive — Apple Sign-In is removed)
+    try {
+      await GoogleSignin.signOut();
+    } catch {
+      // ignore if not signed in via Google
+    }
+
+    // Finally, delete the Firebase Auth user. May throw auth/requires-recent-login.
+    await deleteUser(currentUser);
+    console.log('✅ Firebase Auth user deleted');
+  };
+
   // Configure Google Sign-In
   useEffect(() => {
     if (GOOGLE_WEB_CLIENT_ID) {
@@ -224,7 +295,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, guestMode, signUp, signIn, signInWithGoogle, logout, continueAsGuest }}>
+    <AuthContext.Provider value={{ user, loading, guestMode, signUp, signIn, signInWithGoogle, logout, deleteAccount, continueAsGuest }}>
       {children}
     </AuthContext.Provider>
   );

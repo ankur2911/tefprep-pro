@@ -19,7 +19,7 @@ type Props = {
 };
 
 export default function ProfileScreen({ navigation }: Props) {
-  const { user, logout, guestMode } = useAuth();
+  const { user, logout, deleteAccount, guestMode } = useAuth();
   const { subscription, hasActiveSubscription } = useSubscription();
   const { colors } = useTheme();
 
@@ -68,6 +68,51 @@ export default function ProfileScreen({ navigation }: Props) {
         },
       },
     ]);
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This will permanently delete your account and all associated data, including your test history and subscription record. This action cannot be undone.\n\nActive subscriptions will continue to bill until you cancel them in the App Store or Google Play.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Are you absolutely sure?',
+              'Your account and all your data will be deleted immediately and cannot be recovered.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete Account',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await deleteAccount();
+                      // onAuthStateChanged fires with null → navigator routes to Login
+                    } catch (error: any) {
+                      if (error?.code === 'auth/requires-recent-login') {
+                        Alert.alert(
+                          'Please Sign In Again',
+                          'For security, account deletion requires a recent sign-in. Please log out, sign back in, then try deleting again.'
+                        );
+                      } else {
+                        Alert.alert(
+                          'Delete Failed',
+                          error?.message || 'Could not delete account. Please try again or contact support.'
+                        );
+                      }
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
   };
 
   if (!user || guestMode) {
@@ -237,6 +282,10 @@ export default function ProfileScreen({ navigation }: Props) {
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity style={styles.deleteAccountButton} onPress={handleDeleteAccount}>
+        <Text style={styles.deleteAccountButtonText}>Delete Account</Text>
+      </TouchableOpacity>
+
       <View style={styles.footer}>
         <Text style={[styles.footerText, { color: colors.textSecondary }]}>Version 1.0.0</Text>
       </View>
@@ -333,6 +382,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  deleteAccountButton: {
+    marginHorizontal: 20,
+    marginBottom: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  deleteAccountButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#EF4444',
+    textDecorationLine: 'underline',
   },
   footer: {
     padding: 20,
