@@ -1,6 +1,8 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+// @ts-expect-error — getReactNativePersistence is exported by the RN entry but not in the web types bundle
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
 // Use Constants.expoConfig.extra for runtime environment variables
@@ -26,7 +28,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase services
-export const auth = getAuth(app);
+// Use AsyncStorage persistence so sign-in survives app restarts (RN default loses it)
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 export const db = getFirestore(app);
 
 export default app;
