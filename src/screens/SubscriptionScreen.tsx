@@ -459,6 +459,20 @@ export default function SubscriptionScreen({ navigation }: Props) {
             Subscriptions will auto-renew unless cancelled at least 24 hours before the end of the current period.
             Manage your subscription in your {Platform.OS === 'ios' ? 'App Store' : 'Google Play'} account settings.
           </Text>
+
+          <View style={styles.legalLinks}>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://ankur2911.github.io/tefprep-pro/privacy-policy.html')}
+            >
+              <Text style={styles.legalLinkText}>Privacy Policy</Text>
+            </TouchableOpacity>
+            <Text style={styles.legalLinkSeparator}>·</Text>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}
+            >
+              <Text style={styles.legalLinkText}>Terms of Use (EULA)</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
@@ -742,6 +756,26 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    flexWrap: 'wrap',
+  },
+  legalLinkText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+  },
+  legalLinkSeparator: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    paddingHorizontal: 4,
   },
   loadingOverlay: {
     position: 'absolute',
