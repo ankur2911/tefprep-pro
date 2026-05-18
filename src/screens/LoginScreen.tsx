@@ -18,7 +18,7 @@ type Props = {
 };
 
 export default function LoginScreen({ navigation }: Props) {
-  const { signIn, signUp, signInWithGoogle, continueAsGuest, user } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithApple, continueAsGuest, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -150,6 +150,22 @@ export default function LoginScreen({ navigation }: Props) {
     }
   };
 
+  const handleAppleSignIn = async () => {
+    setSsoLoading(true);
+    try {
+      await signInWithApple();
+      setAuthSuccess(true);
+      setTimeout(() => setSsoLoading(false), 500);
+    } catch (error: any) {
+      console.error('❌ Apple Sign-In error:', error);
+      // 1001 = user cancelled — don't show an error for that
+      if (error.code !== '1001') {
+        Alert.alert('Apple Sign-In Error', error?.message || 'Could not sign in with Apple. Please try again.');
+      }
+      setSsoLoading(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -243,6 +259,18 @@ export default function LoginScreen({ navigation }: Props) {
                   {ssoLoading ? 'Please wait...' : '🔵 Continue with Google'}
                 </Text>
               </TouchableOpacity>
+
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  style={[styles.ssoButton, styles.appleButton, ssoLoading && styles.buttonDisabled]}
+                  onPress={handleAppleSignIn}
+                  disabled={ssoLoading || loading}
+                >
+                  <Text style={[styles.ssoButtonText, styles.appleButtonText]}>
+                    {ssoLoading ? 'Please wait...' : ' Continue with Apple'}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
             </>
           )}
@@ -367,6 +395,13 @@ const styles = StyleSheet.create({
   googleButton: {
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
+  },
+  appleButton: {
+    backgroundColor: '#000',
+    borderColor: '#000',
+  },
+  appleButtonText: {
+    color: '#fff',
   },
   ssoButtonText: {
     fontSize: 16,

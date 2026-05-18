@@ -7,6 +7,7 @@ import {
   User,
   GoogleAuthProvider,
   signInWithCredential,
+  OAuthProvider,
   deleteUser,
 } from 'firebase/auth';
 import {
@@ -22,6 +23,8 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import appleAuth from '@invertase/react-native-apple-authentication';
+import { Platform } from 'react-native';
 import { auth, db } from '../config/firebase';
 
 
@@ -38,6 +41,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   continueAsGuest: () => void;
@@ -294,8 +298,44 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const signInWithApple = async () => {
+    if (Platform.OS !== 'ios') {
+      throw new Error('Apple Sign-In is only available on iOS');
+    }
+
+    // The library auto-generates a nonce, SHA-256-hashes it before sending to Apple,
+    // and returns the raw nonce in the response for us to pass to Firebase.
+    const appleAuthRequestResponse = await appleAuth.performRequest({
+      requestedOperation: appleAuth.Operation.LOGIN,
+      requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+    });
+
+    if (!appleAuthRequestResponse.identityToken) {
+      throw new Error('Apple Sign-In failed - no identity token returned');
+    }
+
+    // Firebase credential: library exposes the raw nonce it used so Firebase can verify
+    const appleCredential = new OAuthProvider('apple.com').credential({
+      idToken: appleAuthRequestResponse.identityToken,
+      rawNonce: appleAuthRequestResponse.nonce,
+    });
+
+    const userCredential = await signInWithCredential(auth, appleCredential);
+
+    const firstName = appleAuthRequestResponse.fullName?.givenName || '';
+    const lastName = appleAuthRequestResponse.fullName?.familyName || '';
+
+    await createUserDocument(userCredential.user, firstName, lastName);
+
+    try {
+      await revenueCatService.identifyUser(userCredential.user.uid);
+    } catch (error) {
+      console.error('Failed to identify user in RevenueCat:', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, guestMode, signUp, signIn, signInWithGoogle, logout, deleteAccount, continueAsGuest }}>
+    <AuthContext.Provider value={{ user, loading, guestMode, signUp, signIn, signInWithGoogle, signInWithApple, logout, deleteAccount, continueAsGuest }}>
       {children}
     </AuthContext.Provider>
   );
